@@ -1,5 +1,6 @@
 ## Go SimpleChain (Work In Process)
 
+[![Build Status](https://travis-ci.org/simplechain-org/simplechain.svg?branch=master)](https://travis-ci.org/simplechain-org/simplechain)
 [![GoDoc](https://godoc.org/github.com/simplechain-org/simplechain?status.svg)](https://godoc.org/github.com/simplechain-org/simplechain)
 [![Go Report Card](https://goreportcard.com/badge/github.com/simplechain-org/simplechain)](https://goreportcard.com/report/github.com/simplechain-org/simplechain)
 
