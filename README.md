@@ -1,5 +1,8 @@
 ## Go SimpleChain (Work In Process)
 
+[![GoDoc](https://godoc.org/github.com/simplechain-org/simplechain?status.svg)](https://godoc.org/github.com/simplechain-org/simplechain)
+[![Go Report Card](https://goreportcard.com/badge/github.com/simplechain-org/simplechain)](https://goreportcard.com/report/github.com/simplechain-org/simplechain)
+
 New implementation of SimpleChain base on geth v1.8.27. SimpleChain use scrypt algorithm instead of
 ethash for POW mining.
 
