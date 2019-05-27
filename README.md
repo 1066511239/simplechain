@@ -1,6 +1,6 @@
 ## Go SimpleChain (Work In Process)
 
-[![Build Status](https://travis-ci.org/simplechain-org/simplechain.svg?branch=master)](https://travis-ci.org/simplechain-org/simplechain)
+[![Build Status](https://travis-ci.org/simplechain-org/simplechain.svg?branch=develop)](https://travis-ci.org/simplechain-org/simplechain)
 [![GoDoc](https://godoc.org/github.com/simplechain-org/simplechain?status.svg)](https://godoc.org/github.com/simplechain-org/simplechain)
 [![Go Report Card](https://goreportcard.com/badge/github.com/simplechain-org/simplechain)](https://goreportcard.com/report/github.com/simplechain-org/simplechain)
 
@@ -98,3 +98,12 @@ Please make sure your contributions adhere to our coding guidelines:
 
 Please see the [Developers' Guide](https://github.com/ethereum/go-ethereum/wiki/Developers'-Guide)
 for more details on configuring your environment, managing project dependencies and testing procedures.
+
+## For developer
+after completed your code, please run lint tools in code directory, eg.
+
+```bash
+$ go run build/ci.go lint consensus/scrypt/
+```
+
+and fix lint errors

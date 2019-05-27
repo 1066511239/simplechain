@@ -971,7 +971,8 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 			feesEth := new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
 
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
-				"uncles", len(uncles), "txs", w.current.tcount, "gas", block.GasUsed(), "fees", feesEth, "elapsed", common.PrettyDuration(time.Since(start)))
+				"uncles", len(uncles), "txs", w.current.tcount, "gas", block.GasUsed(), "fees", feesEth,
+				"elapsed", common.PrettyDuration(time.Since(start)), "miner", block.Coinbase(), "difficulty", block.Difficulty())
 
 		case <-w.exitCh:
 			log.Info("Worker has exited")

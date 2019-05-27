@@ -57,6 +57,7 @@ func (w *wizard) makeGenesis() {
 	fmt.Println("Which consensus engine to use? (default = clique)")
 	fmt.Println(" 1. Ethash - proof-of-work")
 	fmt.Println(" 2. Clique - proof-of-authority")
+	fmt.Println(" 3. Scrypt - proof-of-work")
 
 	choice := w.read()
 	switch {
@@ -102,6 +103,11 @@ func (w *wizard) makeGenesis() {
 		for i, signer := range signers {
 			copy(genesis.ExtraData[32+i*common.AddressLength:], signer[:])
 		}
+
+	case choice == "3":
+		// In case of powScrypt, we're pretty much done
+		genesis.Config.Scrypt = new(params.ScryptConfig)
+		genesis.ExtraData = make([]byte, 32)
 
 	default:
 		log.Crit("Invalid consensus engine choice", "choice", choice)
