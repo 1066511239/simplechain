@@ -69,6 +69,10 @@ func (powScrypt *PowScrypt) Author(header *types.Header) (common.Address, error)
 // VerifyHeader checks whether a header conforms to the consensus rules of the
 // stock Simplechain scrypt engine.
 func (powScrypt *PowScrypt) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+	// If we're running a full engine faking, accept any input as valid
+	if powScrypt.config.PowMode == ModeFullFake {
+		return nil
+	}
 	// Short circuit if the header is known, or it's parent not
 	number := header.Number.Uint64()
 	if chain.GetHeader(header.Hash(), number) != nil {
@@ -86,6 +90,14 @@ func (powScrypt *PowScrypt) VerifyHeader(chain consensus.ChainReader, header *ty
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications.
 func (powScrypt *PowScrypt) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+	// If we're running a full engine faking, accept any input as valid
+	if powScrypt.config.PowMode == ModeFullFake || len(headers) == 0 {
+		abort, results := make(chan struct{}), make(chan error, len(headers))
+		for i := 0; i < len(headers); i++ {
+			results <- nil
+		}
+		return abort, results
+	}
 	// Spawn as many workers as allowed threads
 	workers := runtime.GOMAXPROCS(0)
 	if len(headers) < workers {
@@ -155,8 +167,12 @@ func (powScrypt *PowScrypt) verifyHeaderWorker(chain consensus.ChainReader, head
 }
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus
-// rules of the stock Simplechain scrypt engine.
+// rules of the stock SimpleChain scrypt engine.
 func (powScrypt *PowScrypt) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
+	// If we're running a full engine faking, accept any input as valid
+	if powScrypt.config.PowMode == ModeFullFake {
+		return nil
+	}
 	// Verify that there are at most 2 uncles included in this block
 	if len(block.Uncles()) > maxUncles {
 		return errTooManyUncles
@@ -348,6 +364,19 @@ func calcDifficultySimpleChain(time uint64, parent *types.Header) *big.Int {
 // VerifySeal implements consensus.Engine, checking whether the given block satisfies
 // the PoW difficulty requirements.
 func (powScrypt *PowScrypt) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+	return powScrypt.verifySeal(chain, header)
+}
+
+// verifySeal checks whether a block satisfies the PoW difficulty requirements,
+func (powScrypt *PowScrypt) verifySeal(chain consensus.ChainReader, header *types.Header) error {
+	// If we're running a fake PoW, accept any seal as valid
+	if powScrypt.config.PowMode == ModeFake || powScrypt.config.PowMode == ModeFullFake {
+		time.Sleep(powScrypt.fakeDelay)
+		if powScrypt.fakeFail == header.Number.Uint64() {
+			return errInvalidPoW
+		}
+		return nil
+	}
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
 		return errInvalidDifficulty

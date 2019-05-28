@@ -230,9 +230,19 @@ func CreateConsensusEngine(ctx *node.ServiceContext, chainConfig *params.ChainCo
 	}
 
 	if chainConfig.Scrypt != nil {
-		engine := scrypt.NewScrypt()
-		engine.SetThreads(-1) // Disable CPU mining
-		return engine
+		// Scrypt and Ethash share the PowMode in this switch cases
+		switch config.PowMode {
+		case ethash.ModeFake:
+			log.Warn("Scrypt used in fake mode")
+			return scrypt.NewFaker()
+		case ethash.ModeTest:
+			log.Warn("Scrypt used in test mode")
+			return scrypt.NewTester(notify, noverify)
+		default:
+			engine := scrypt.NewScrypt(scrypt.Config{PowMode: scrypt.ModeNormal}, notify, noverify)
+			engine.SetThreads(-1) // Disable CPU mining
+			return engine
+		}
 	}
 
 	// Otherwise assume proof-of-work

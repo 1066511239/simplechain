@@ -35,26 +35,29 @@ type API struct {
 //
 // The work package consists of 3 strings:
 //   result[0] - 32 bytes hex encoded current block header pow-hash
-//   result[1] - 32 bytes hex encoded seed hash used for DAG
-//   result[2] - 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
-//   result[3] - hex encoded block number
-func (api *API) GetWork() ([4]string, error) {
+//   result[1] - 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
+//   result[2] - hex encoded block number
+func (api *API) GetWork() ([3]string, error) {
+	if api.powScrypt.config.PowMode != ModeNormal && api.powScrypt.config.PowMode != ModeTest {
+		return [3]string{}, errors.New("not supported")
+	}
+
 	var (
-		workCh = make(chan [4]string, 1)
+		workCh = make(chan [3]string, 1)
 		errc   = make(chan error, 1)
 	)
 
 	select {
 	case api.powScrypt.fetchWorkCh <- &sealWork{errc: errc, res: workCh}:
 	case <-api.powScrypt.exitCh:
-		return [4]string{}, errScryptStopped
+		return [3]string{}, errScryptStopped
 	}
 
 	select {
 	case work := <-workCh:
 		return work, nil
 	case err := <-errc:
-		return [4]string{}, err
+		return [3]string{}, err
 	}
 }
 
@@ -62,6 +65,10 @@ func (api *API) GetWork() ([4]string, error) {
 // It returns an indication if the work was accepted.
 // Note either an invalid solution, a stale work a non-existent work will return false.
 func (api *API) SubmitWork(nonce types.BlockNonce, hash, digest common.Hash) bool {
+	if api.powScrypt.config.PowMode != ModeNormal && api.powScrypt.config.PowMode != ModeTest {
+		return false
+	}
+
 	var errc = make(chan error, 1)
 
 	select {
@@ -86,6 +93,10 @@ func (api *API) SubmitWork(nonce types.BlockNonce, hash, digest common.Hash) boo
 // It accepts the miner hash rate and an identifier which must be unique
 // between nodes.
 func (api *API) SubmitHashRate(rate hexutil.Uint64, id common.Hash) bool {
+	if api.powScrypt.config.PowMode != ModeNormal && api.powScrypt.config.PowMode != ModeTest {
+		return false
+	}
+
 	var done = make(chan struct{}, 1)
 
 	select {

@@ -16,32 +16,50 @@
 package scrypt
 
 import (
+	"bytes"
 	crand "crypto/rand"
+	"encoding/json"
+	"errors"
 	"math"
 	"math/big"
 	"math/rand"
+	"net/http"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 )
 
-//const (
-//	// staleThreshold is the maximum depth of the acceptable stale but valid ethash solution.
-//	staleThreshold = 7
-//)
+const (
+	// staleThreshold is the maximum depth of the acceptable stale but valid ethash solution.
+	staleThreshold = 7
+)
 
-//var (
-//	errNoMiningWork      = errors.New("no mining work available yet")
-//	errInvalidSealResult = errors.New("invalid or stale proof-of-work solution")
-//)
+var (
+	errNoMiningWork      = errors.New("no mining work available yet")
+	errInvalidSealResult = errors.New("invalid or stale proof-of-work solution")
+)
 
 // Seal implements consensus.Engine, attempting to find a nonce that satisfies
 // the block's difficulty requirements.
 func (powScrypt *PowScrypt) Seal(chain consensus.ChainReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
+	// If we're running a fake PoW, simply return a 0 nonce immediately
+	if powScrypt.config.PowMode == ModeFake || powScrypt.config.PowMode == ModeFullFake {
+		header := block.Header()
+		header.Nonce, header.MixDigest = types.BlockNonce{}, common.Hash{}
+		select {
+		case results <- block.WithSeal(header):
+		default:
+			log.Warn("Sealing result is not read by miner", "mode", "fake", "sealhash", powScrypt.SealHash(block.Header()))
+		}
+		return nil
+	}
+
 	// Create a runner and the multiple search threads it directs
 	abort := make(chan struct{})
 
@@ -161,29 +179,15 @@ search:
 	}
 }
 
-//fake remote mine
-func (powScrypt *PowScrypt) remote() {
-	for {
-		select {
-		case errc := <-powScrypt.exitCh:
-			// Exit remote loop if ethash is closed and return relevant error.
-			errc <- nil
-			log.Trace("Scrypt remote sealer is exiting")
-			return
-		}
-	}
-}
-
-// TODO: remote mine
 // remote is a standalone goroutine to handle remote mining related stuff.
-/*func (powScrypt *PowScrypt) remote(notify []string, noverify bool) {
+func (powScrypt *PowScrypt) remote(notify []string, noverify bool) {
 	var (
 		works = make(map[common.Hash]*types.Block)
 		rates = make(map[common.Hash]hashrate)
 
 		results      chan<- *types.Block
 		currentBlock *types.Block
-		currentWork  [4]string
+		currentWork  [3]string
 
 		notifyTransport = &http.Transport{}
 		notifyClient    = &http.Client{
@@ -222,16 +226,14 @@ func (powScrypt *PowScrypt) remote() {
 	//
 	// The work package consists of 3 strings:
 	//   result[0], 32 bytes hex encoded current block header pow-hash
-	//   result[1], 32 bytes hex encoded seed hash used for DAG
-	//   result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
-	//   result[3], hex encoded block number
+	//   result[1], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
+	//   result[2], hex encoded block number
 	makeWork := func(block *types.Block) {
 		hash := powScrypt.SealHash(block.Header())
 
 		currentWork[0] = hash.Hex()
-		currentWork[1] = common.BytesToHash([]byte{0x0}).Hex()
-		currentWork[2] = common.BytesToHash(new(big.Int).Div(two256, block.Difficulty()).Bytes()).Hex()
-		currentWork[3] = hexutil.EncodeBig(block.Number())
+		currentWork[1] = common.BytesToHash(new(big.Int).Div(two256, block.Difficulty()).Bytes()).Hex()
+		currentWork[2] = hexutil.EncodeBig(block.Number())
 
 		// Trace the seal work fetched by remote sealer.
 		currentBlock = block
@@ -258,7 +260,7 @@ func (powScrypt *PowScrypt) remote() {
 
 		start := time.Now()
 		if !noverify {
-			if err := powScrypt.verifySeal(nil, header, true); err != nil {
+			if err := powScrypt.verifySeal(nil, header); err != nil {
 				log.Warn("Invalid proof-of-work submitted", "sealhash", sealhash, "elapsed", time.Since(start), "err", err)
 				return false
 			}
@@ -351,10 +353,10 @@ func (powScrypt *PowScrypt) remote() {
 			}
 
 		case errc := <-powScrypt.exitCh:
-			// Exit remote loop if ethash is closed and return relevant error.
+			// Exit remote loop if scrypt is closed and return relevant error.
 			errc <- nil
 			log.Trace("Scrypt remote sealer is exiting")
 			return
 		}
 	}
-}*/
+}

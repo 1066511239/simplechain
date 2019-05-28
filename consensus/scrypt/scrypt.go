@@ -36,6 +36,22 @@ var (
 	ScryptMode = uint(0x30)
 )
 
+// Mode defines the type and amount of PoW verification an ethash engine makes.
+type Mode uint
+
+const (
+	ModeNormal Mode = iota
+	ModeShared
+	ModeTest
+	ModeFake
+	ModeFullFake
+)
+
+// Config are the configuration parameters of the ethash.
+type Config struct {
+	PowMode Mode
+}
+
 // sealTask wraps a seal block with relative result channel for remote sealer thread.
 type sealTask struct {
 	block   *types.Block
@@ -63,12 +79,14 @@ type hashrate struct {
 // sealWork wraps a seal work package for remote sealer.
 type sealWork struct {
 	errc chan error
-	res  chan [4]string
+	res  chan [3]string
 }
 
 // PowScrypt is a consensus engine based on proof-of-work implementing the scrypt
 // algorithm.
 type PowScrypt struct {
+	config Config
+
 	// Mining related fields
 	rand     *rand.Rand    // Properly seeded random source for nonces
 	threads  int           // Number of threads to mine on if mining
@@ -82,6 +100,10 @@ type PowScrypt struct {
 	fetchRateCh  chan chan uint64 // Channel used to gather submitted hash rate for local or remote sealer.
 	submitRateCh chan *hashrate   // Channel used for remote sealer to submit their mining hashrate
 
+	// The fields below are hooks for testing
+	fakeFail  uint64        // Block number which fails PoW check even in fake mode
+	fakeDelay time.Duration // Time delay to sleep for before returning from verify
+
 	lock      sync.Mutex      // Ensures thread safety for the in-memory caches and mining fields
 	closeOnce sync.Once       // Ensures exit channel will not be closed twice.
 	exitCh    chan chan error // Notification channel to exiting backend threads
@@ -90,20 +112,86 @@ type PowScrypt struct {
 // New creates a full sized scrypt PoW scheme and starts a background thread for
 // remote mining, also optionally notifying a batch of remote services of new work
 // packages.
-func NewScrypt() *PowScrypt {
+func NewScrypt(config Config, notify []string, noverify bool) *PowScrypt {
 	pow := &PowScrypt{
+		config:   config,
 		update:   make(chan struct{}),
 		hashrate: metrics.NewMeterForced(),
-		//workCh:       make(chan *sealTask),
-		//fetchWorkCh:  make(chan *sealWork),
-		//submitWorkCh: make(chan *mineResult),
-		//fetchRateCh:  make(chan chan uint64),
-		//submitRateCh: make(chan *hashrate),
-		exitCh: make(chan chan error),
+
+		workCh:       make(chan *sealTask),
+		fetchWorkCh:  make(chan *sealWork),
+		submitWorkCh: make(chan *mineResult),
+		fetchRateCh:  make(chan chan uint64),
+		submitRateCh: make(chan *hashrate),
+		exitCh:       make(chan chan error),
 	}
-	//TODO: remote
-	go pow.remote()
+
+	go pow.remote(notify, noverify)
 	return pow
+}
+
+// NewTester creates a small sized scrypt PoW scheme useful only for testing
+// purposes.
+func NewTester(notify []string, noverify bool) *PowScrypt {
+	pow := &PowScrypt{
+		config:   Config{PowMode: ModeTest},
+		update:   make(chan struct{}),
+		hashrate: metrics.NewMeterForced(),
+
+		workCh:       make(chan *sealTask),
+		fetchWorkCh:  make(chan *sealWork),
+		submitWorkCh: make(chan *mineResult),
+		fetchRateCh:  make(chan chan uint64),
+		submitRateCh: make(chan *hashrate),
+		exitCh:       make(chan chan error),
+	}
+	go pow.remote(notify, noverify)
+	return pow
+}
+
+// NewFaker creates a scrypt consensus engine with a fake PoW scheme that accepts
+// all blocks' seal as valid, though they still have to conform to the SimpleChain
+// consensus rules.
+func NewFaker() *PowScrypt {
+	return &PowScrypt{
+		config: Config{
+			PowMode: ModeFake,
+		},
+	}
+}
+
+// NewFakeFailer creates a scrypt consensus engine with a fake PoW scheme that
+// accepts all blocks as valid apart from the single one specified, though they
+// still have to conform to the SimpleChain consensus rules.
+func NewFakeFailer(fail uint64) *PowScrypt {
+	return &PowScrypt{
+		config: Config{
+			PowMode: ModeFake,
+		},
+		fakeFail: fail,
+	}
+}
+
+// NewFakeDelayer creates a scrypt consensus engine with a fake PoW scheme that
+// accepts all blocks as valid, but delays verifications by some time, though
+// they still have to conform to the SimplChain consensus rules.
+func NewFakeDelayer(delay time.Duration) *PowScrypt {
+	return &PowScrypt{
+		config: Config{
+			PowMode: ModeFake,
+		},
+		fakeDelay: delay,
+	}
+}
+
+// NewFullFaker creates an scrypt consensus engine with a full fake scheme that
+// accepts all blocks as valid, without checking any consensus rules whatsoever.
+func NewFullFaker() *PowScrypt {
+	return &PowScrypt{
+		config: Config{
+			PowMode: ModeFullFake,
+		},
+	}
 }
 
 // Close closes the exit channel to notify all backend threads exiting.
@@ -153,6 +241,10 @@ func (powScrypt *PowScrypt) SetThreads(threads int) {
 // Note the returned hashrate includes local hashrate, but also includes the total
 // hashrate of all remote miner.
 func (powScrypt *PowScrypt) Hashrate() float64 {
+	// Short circuit if we are run the ethash in normal/test mode.
+	if powScrypt.config.PowMode != ModeNormal && powScrypt.config.PowMode != ModeTest {
+		return powScrypt.hashrate.Rate1()
+	}
 	var res = make(chan uint64, 1)
 
 	select {
