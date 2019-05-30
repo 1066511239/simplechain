@@ -27,16 +27,16 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/internal/debug"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/core/rawdb"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/ethdb"
+	"github.com/simplechain-org/simplechain/internal/debug"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/node"
+	"github.com/simplechain-org/simplechain/rlp"
 )
 
 const (

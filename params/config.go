@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/simplechain-org/simplechain/common"
 )
 
 // Genesis hashes to enforce below configs on.

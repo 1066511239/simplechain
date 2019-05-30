@@ -26,14 +26,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
 	"github.com/hashicorp/golang-lru"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/consensus"
+	"github.com/simplechain-org/simplechain/core/rawdb"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/ethdb"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 const (

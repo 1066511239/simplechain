@@ -26,12 +26,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/internal/jsre"
-	"github.com/ethereum/go-ethereum/node"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/consensus/ethash"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/eth"
+	"github.com/simplechain-org/simplechain/internal/jsre"
+	"github.com/simplechain-org/simplechain/node"
 )
 
 const (

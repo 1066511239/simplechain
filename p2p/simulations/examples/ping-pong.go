@@ -25,13 +25,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/simulations"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/node"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/p2p/simulations"
+	"github.com/simplechain-org/simplechain/p2p/simulations/adapters"
+	"github.com/simplechain-org/simplechain/rpc"
 )
 
 var adapterType = flag.String("adapter", "sim", `node adapter to use (one of "sim", "exec" or "docker")`)

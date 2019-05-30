@@ -40,7 +40,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/simplechain-org/simplechain/crypto"
 )
 
 var dumpEnc bool

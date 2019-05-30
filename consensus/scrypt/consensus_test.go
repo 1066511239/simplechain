@@ -21,9 +21,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/math"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/common/math"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 type diffTest struct {

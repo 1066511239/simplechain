@@ -25,15 +25,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/params"
+	ethereum "github.com/simplechain-org/simplechain"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core/rawdb"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/ethdb"
+	"github.com/simplechain-org/simplechain/event"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/metrics"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 var (

@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/consensus/ethash"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/core/vm"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/ethdb"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 func ExampleGenerateChain() {

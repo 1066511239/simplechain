@@ -19,7 +19,7 @@ package vm
 import (
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // Gas costs

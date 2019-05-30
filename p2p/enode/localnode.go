@@ -26,9 +26,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enr"
-	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/p2p/enr"
+	"github.com/simplechain-org/simplechain/p2p/netutil"
 )
 
 const (

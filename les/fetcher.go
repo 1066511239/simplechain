@@ -22,13 +22,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/common/mclock"
+	"github.com/simplechain-org/simplechain/consensus"
+	"github.com/simplechain-org/simplechain/core/rawdb"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/light"
+	"github.com/simplechain-org/simplechain/log"
 )
 
 const (

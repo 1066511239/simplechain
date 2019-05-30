@@ -24,13 +24,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/les/flowcontrol"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/eth"
+	"github.com/simplechain-org/simplechain/les/flowcontrol"
+	"github.com/simplechain-org/simplechain/light"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/rlp"
 )
 
 var (

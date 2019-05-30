@@ -26,11 +26,11 @@ import (
 	"strconv"
 
 	"github.com/docker/docker/pkg/reexec"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/node"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/rpc"
 )
 
 // Node represents a node in a simulation network which is created by a

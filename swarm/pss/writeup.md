@@ -36,22 +36,22 @@ go test -race -v ./swarm/pss -cpu 4 -run TestNetwork
   1 ==================
   2 WARNING: DATA RACE
   3 Read at 0x00c424d456a0 by goroutine 1089:
-  4   github.com/ethereum/go-ethereum/swarm/pss.(*Pss).forward.func1()
-  5       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/swarm/pss/pss.go:654 +0x44f
-  6   github.com/ethereum/go-ethereum/swarm/network.(*Kademlia).eachConn.func1()
-  7       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/swarm/network/kademlia.go:350 +0xc9
-  8   github.com/ethereum/go-ethereum/pot.(*Pot).eachNeighbour.func1()
-  9       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/pot/pot.go:599 +0x59
+  4   github.com/simplechain-org/simplechain/swarm/pss.(*Pss).forward.func1()
+  5       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/swarm/pss/pss.go:654 +0x44f
+  6   github.com/simplechain-org/simplechain/swarm/network.(*Kademlia).eachConn.func1()
+  7       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/swarm/network/kademlia.go:350 +0xc9
+  8   github.com/simplechain-org/simplechain/pot.(*Pot).eachNeighbour.func1()
+  9       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/pot/pot.go:599 +0x59
   ...
 
  28
  29 Previous write at 0x00c424d456a0 by goroutine 829:
- 30   github.com/ethereum/go-ethereum/swarm/pss.(*Pss).Run()
- 31       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/swarm/pss/pss.go:192 +0x16a
- 32   github.com/ethereum/go-ethereum/swarm/pss.(*Pss).Run-fm()
- 33       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/swarm/pss/pss.go:185 +0x63
- 34   github.com/ethereum/go-ethereum/p2p.(*Peer).startProtocols.func1()
- 35       /Users/nonsense/code/src/github.com/ethereum/go-ethereum/p2p/peer.go:347 +0x8b
+ 30   github.com/simplechain-org/simplechain/swarm/pss.(*Pss).Run()
+ 31       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/swarm/pss/pss.go:192 +0x16a
+ 32   github.com/simplechain-org/simplechain/swarm/pss.(*Pss).Run-fm()
+ 33       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/swarm/pss/pss.go:185 +0x63
+ 34   github.com/simplechain-org/simplechain/p2p.(*Peer).startProtocols.func1()
+ 35       /Users/nonsense/code/src/github.com/simplechain-org/simplechain/p2p/peer.go:347 +0x8b
  ...
 ```
 
@@ -115,9 +115,9 @@ Ultimately the deadlocks happen due to blocking `pp.Send()` call at:
   		}
 
  `p2p` request handling is synchronous (as discussed at https://github.com/ethersphere/go-ethereum/issues/130), `pss` is also synchronous, therefore if two nodes happen to be processing a request, while at the same time waiting for response on `pp.Send(msg)`, deadlock occurs.
- 
+
  `pp.Send(msg)` is only blocking when the underlying adapter is blocking (read `sim` or `sock`) or the buffer of the connection is full.
- 
+
 ##### Current solution
 
 Make no assumption on the undelying connection, and call `pp.Send` asynchronously in a go-routine.

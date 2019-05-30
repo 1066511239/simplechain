@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ethereum/go-ethereum/crypto/scrypt"
+	"github.com/simplechain-org/simplechain/crypto/scrypt"
 )
 
 func Example() {

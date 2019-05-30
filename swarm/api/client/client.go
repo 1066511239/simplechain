@@ -37,12 +37,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/swarm/api"
-	"github.com/ethereum/go-ethereum/swarm/spancontext"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed"
 	"github.com/pborman/uuid"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/metrics"
+	"github.com/simplechain-org/simplechain/swarm/api"
+	"github.com/simplechain-org/simplechain/swarm/spancontext"
+	"github.com/simplechain-org/simplechain/swarm/storage/feed"
 )
 
 var (

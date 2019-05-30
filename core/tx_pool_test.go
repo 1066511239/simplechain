@@ -26,13 +26,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core/state"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/ethdb"
+	"github.com/simplechain-org/simplechain/event"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // testTxPoolConfig is a transaction pool configuration without stateful disk

@@ -29,10 +29,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // makeGenesis creates a new genesis struct based on some user input.

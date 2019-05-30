@@ -26,13 +26,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/swarm/api"
-	"github.com/ethereum/go-ethereum/swarm/storage"
-	"github.com/ethereum/go-ethereum/swarm/testutil"
 	"github.com/pborman/uuid"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/metrics"
+	"github.com/simplechain-org/simplechain/rpc"
+	"github.com/simplechain-org/simplechain/swarm/api"
+	"github.com/simplechain-org/simplechain/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/testutil"
 
 	cli "gopkg.in/urfave/cli.v1"
 )

@@ -21,10 +21,10 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/swarm/network"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/swarm/network"
 )
 
 // BucketKeyKademlia is the key to be used for storing the kademlia

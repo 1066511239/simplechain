@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // Forks table defines supported forks and their chain config.

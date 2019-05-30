@@ -28,17 +28,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/protocols"
-	"github.com/ethereum/go-ethereum/p2p/simulations"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/swarm/log"
-	"github.com/ethereum/go-ethereum/swarm/network/simulation"
-	"github.com/ethereum/go-ethereum/swarm/state"
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/simplechain-org/simplechain/node"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/p2p/protocols"
+	"github.com/simplechain-org/simplechain/p2p/simulations"
+	"github.com/simplechain-org/simplechain/p2p/simulations/adapters"
+	"github.com/simplechain-org/simplechain/rlp"
+	"github.com/simplechain-org/simplechain/swarm/log"
+	"github.com/simplechain-org/simplechain/swarm/network/simulation"
+	"github.com/simplechain-org/simplechain/swarm/state"
+	"github.com/simplechain-org/simplechain/swarm/storage"
 )
 
 /*

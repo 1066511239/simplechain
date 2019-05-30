@@ -38,13 +38,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/swarm/spancontext"
-	"github.com/ethereum/go-ethereum/swarm/tracing"
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/metrics"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/rlp"
+	"github.com/simplechain-org/simplechain/swarm/spancontext"
+	"github.com/simplechain-org/simplechain/swarm/tracing"
 )
 
 // error codes used by this  protocol scheme

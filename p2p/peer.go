@@ -25,12 +25,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/simplechain/common/mclock"
+	"github.com/simplechain-org/simplechain/event"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/p2p/enr"
+	"github.com/simplechain-org/simplechain/rlp"
 )
 
 var (

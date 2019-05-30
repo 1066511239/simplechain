@@ -22,15 +22,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/consensus"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/core/state"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/eth/downloader"
+	"github.com/simplechain-org/simplechain/event"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // Backend wraps all methods required for mining.

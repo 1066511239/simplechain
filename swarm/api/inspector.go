@@ -19,8 +19,8 @@ package api
 import (
 	"context"
 
-	"github.com/ethereum/go-ethereum/swarm/network"
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/network"
+	"github.com/simplechain-org/simplechain/swarm/storage"
 )
 
 type Inspector struct {

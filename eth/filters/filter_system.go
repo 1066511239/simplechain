@@ -25,14 +25,14 @@ import (
 	"sync"
 	"time"
 
-	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rpc"
+	ethereum "github.com/simplechain-org/simplechain"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/core/rawdb"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/event"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/rpc"
 )
 
 // Type determines the kind of filter and is used to put the filter in to

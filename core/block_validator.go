@@ -19,10 +19,10 @@ package core
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/simplechain-org/simplechain/consensus"
+	"github.com/simplechain-org/simplechain/core/state"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/params"
 )
 
 // BlockValidator is responsible for validating block headers, uncles and

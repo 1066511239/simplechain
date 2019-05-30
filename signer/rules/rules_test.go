@@ -22,13 +22,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/signer/core"
-	"github.com/ethereum/go-ethereum/signer/storage"
+	"github.com/simplechain-org/simplechain/accounts"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/common/hexutil"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/internal/ethapi"
+	"github.com/simplechain-org/simplechain/signer/core"
+	"github.com/simplechain-org/simplechain/signer/storage"
 )
 
 const JS = `

@@ -17,10 +17,10 @@
 package rawdb
 
 import (
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/rlp"
 )
 
 // ReadTxLookupEntry retrieves the positional metadata associated with a transaction

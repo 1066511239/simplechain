@@ -23,10 +23,10 @@ import (
 
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/simplechain-org/simplechain/accounts"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/common/hexutil"
+	"github.com/simplechain-org/simplechain/core/types"
 )
 
 type Accounts []Account

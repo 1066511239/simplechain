@@ -25,14 +25,14 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/swarm/storage"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed/lookup"
+	"github.com/simplechain-org/simplechain/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/storage/feed/lookup"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/swarm/api"
-	swarmhttp "github.com/ethereum/go-ethereum/swarm/api/http"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/swarm/api"
+	swarmhttp "github.com/simplechain-org/simplechain/swarm/api/http"
+	"github.com/simplechain-org/simplechain/swarm/storage/feed"
 )
 
 func serverFunc(api *api.API) swarmhttp.TestServer {

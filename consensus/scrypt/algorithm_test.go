@@ -19,7 +19,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/simplechain-org/simplechain/common/hexutil"
 )
 
 // Tests whether the ScryptHash lookup works

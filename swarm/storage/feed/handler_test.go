@@ -26,11 +26,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/swarm/chunk"
-	"github.com/ethereum/go-ethereum/swarm/storage"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed/lookup"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/swarm/chunk"
+	"github.com/simplechain-org/simplechain/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/storage/feed/lookup"
 )
 
 var (

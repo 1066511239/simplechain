@@ -16,8 +16,8 @@
 package scrypt
 
 import (
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/crypto/scrypt"
+	"github.com/simplechain-org/simplechain/crypto"
+	"github.com/simplechain-org/simplechain/crypto/scrypt"
 )
 
 func ScryptHash(hash []byte, nonce uint64) ([]byte, []byte) {

@@ -19,7 +19,7 @@ package protocols
 import (
 	"time"
 
-	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/simplechain-org/simplechain/metrics"
 )
 
 // define some metrics

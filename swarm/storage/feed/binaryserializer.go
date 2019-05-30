@@ -16,7 +16,7 @@
 
 package feed
 
-import "github.com/ethereum/go-ethereum/common/hexutil"
+import "github.com/simplechain-org/simplechain/common/hexutil"
 
 type binarySerializer interface {
 	binaryPut(serializedData []byte) error

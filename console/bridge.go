@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/usbwallet"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/robertkrimen/otto"
+	"github.com/simplechain-org/simplechain/accounts/usbwallet"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/rpc"
 )
 
 // bridge is a collection of JavaScript utility methods to bride the .js runtime

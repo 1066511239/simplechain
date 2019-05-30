@@ -19,9 +19,9 @@ package protocols
 import (
 	"testing"
 
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/simplechain-org/simplechain/p2p"
+	"github.com/simplechain-org/simplechain/p2p/simulations/adapters"
+	"github.com/simplechain-org/simplechain/rlp"
 )
 
 //dummy Balance implementation

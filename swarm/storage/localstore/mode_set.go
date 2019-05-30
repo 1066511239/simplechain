@@ -17,7 +17,7 @@
 package localstore
 
 import (
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/storage"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

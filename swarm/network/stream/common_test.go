@@ -30,17 +30,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
-	p2ptest "github.com/ethereum/go-ethereum/p2p/testing"
-	"github.com/ethereum/go-ethereum/swarm/network"
-	"github.com/ethereum/go-ethereum/swarm/network/simulation"
-	"github.com/ethereum/go-ethereum/swarm/state"
-	"github.com/ethereum/go-ethereum/swarm/storage"
-	mockmem "github.com/ethereum/go-ethereum/swarm/storage/mock/mem"
-	"github.com/ethereum/go-ethereum/swarm/testutil"
 	colorable "github.com/mattn/go-colorable"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/p2p/enode"
+	"github.com/simplechain-org/simplechain/p2p/simulations/adapters"
+	p2ptest "github.com/simplechain-org/simplechain/p2p/testing"
+	"github.com/simplechain-org/simplechain/swarm/network"
+	"github.com/simplechain-org/simplechain/swarm/network/simulation"
+	"github.com/simplechain-org/simplechain/swarm/state"
+	"github.com/simplechain-org/simplechain/swarm/storage"
+	mockmem "github.com/simplechain-org/simplechain/swarm/storage/mock/mem"
+	"github.com/simplechain-org/simplechain/swarm/testutil"
 )
 
 var (

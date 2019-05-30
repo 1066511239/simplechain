@@ -28,9 +28,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/log"
-	ch "github.com/ethereum/go-ethereum/swarm/chunk"
 	"github.com/mattn/go-colorable"
+	"github.com/simplechain-org/simplechain/log"
+	ch "github.com/simplechain-org/simplechain/swarm/chunk"
 )
 
 var (

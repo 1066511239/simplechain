@@ -22,13 +22,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/signer/core"
-	"github.com/ethereum/go-ethereum/signer/rules/deps"
-	"github.com/ethereum/go-ethereum/signer/storage"
 	"github.com/robertkrimen/otto"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/internal/ethapi"
+	"github.com/simplechain-org/simplechain/log"
+	"github.com/simplechain-org/simplechain/signer/core"
+	"github.com/simplechain-org/simplechain/signer/rules/deps"
+	"github.com/simplechain-org/simplechain/signer/storage"
 )
 
 var (

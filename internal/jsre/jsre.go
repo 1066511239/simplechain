@@ -26,9 +26,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/internal/jsre/deps"
 	"github.com/robertkrimen/otto"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/internal/jsre/deps"
 )
 
 var (

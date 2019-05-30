@@ -22,8 +22,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
+	ethereum "github.com/simplechain-org/simplechain"
+	"github.com/simplechain-org/simplechain/common"
 )
 
 // Verify that Client implements the ethereum interfaces.

@@ -19,8 +19,8 @@ package trie
 import (
 	"testing"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/ethdb"
 )
 
 // Tests that the trie database returns a missing trie node error if attempting

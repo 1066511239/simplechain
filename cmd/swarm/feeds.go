@@ -21,13 +21,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/common/hexutil"
+	"github.com/simplechain-org/simplechain/crypto"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	swarm "github.com/ethereum/go-ethereum/swarm/api/client"
-	"github.com/ethereum/go-ethereum/swarm/storage/feed"
+	"github.com/simplechain-org/simplechain/cmd/utils"
+	swarm "github.com/simplechain-org/simplechain/swarm/api/client"
+	"github.com/simplechain-org/simplechain/swarm/storage/feed"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -48,7 +48,7 @@ var feedCommand = cli.Command{
 					* use --topic to set the topic to an arbitrary binary hex string.
 					* use --name to set the topic to a human-readable name.
 					    For example --name could be set to "profile-picture", meaning this feed allows to get this user's current profile picture.
-					* use both --topic and --name to create named subtopics. 
+					* use both --topic and --name to create named subtopics.
 						For example, --topic could be set to an Ethereum contract address and --name could be set to "comments", meaning
 						this feed tracks a discussion about that contract.
 					The --user flag allows to have this manifest refer to a user other than yourself. If not specified,
@@ -66,10 +66,10 @@ var feedCommand = cli.Command{
 					* use --topic to set the topic to an arbitrary binary hex string.
 					* use --name to set the topic to a human-readable name.
 					    For example --name could be set to "profile-picture", meaning this feed allows to get this user's current profile picture.
-					* use both --topic and --name to create named subtopics. 
+					* use both --topic and --name to create named subtopics.
 						For example, --topic could be set to an Ethereum contract address and --name could be set to "comments", meaning
 						this feed tracks a discussion about that contract.
-					
+
 					If you have a manifest, you can specify it with --manifest to refer to the feed,
 					instead of using --topic / --name
 					`,

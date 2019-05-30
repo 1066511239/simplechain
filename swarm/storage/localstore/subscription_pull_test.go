@@ -24,7 +24,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/swarm/storage"
+	"github.com/simplechain-org/simplechain/swarm/storage"
 )
 
 // TestDB_SubscribePull uploads some chunks before and after

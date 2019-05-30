@@ -20,12 +20,12 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/contracts/ens/contract"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/simplechain-org/simplechain/accounts/abi/bind"
+	"github.com/simplechain-org/simplechain/accounts/abi/bind/backends"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/contracts/ens/contract"
+	"github.com/simplechain-org/simplechain/core"
+	"github.com/simplechain-org/simplechain/crypto"
 )
 
 var (

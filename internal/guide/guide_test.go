@@ -30,8 +30,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/simplechain-org/simplechain/accounts/keystore"
+	"github.com/simplechain-org/simplechain/core/types"
 )
 
 // Tests that the account management snippets work correctly.
