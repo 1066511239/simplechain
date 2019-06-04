@@ -1,6 +1,6 @@
 ## Go SimpleChain (Work In Process)
 
-[![Build Status](https://travis-ci.org/simplechain-org/simplechain.svg?branch=develop)](https://travis-ci.org/simplechain-org/simplechain)
+[![Build Status](https://travis-ci.org/simplechain-org/simplechain.svg?branch=dev)](https://travis-ci.org/simplechain-org/simplechain)
 [![GoDoc](https://godoc.org/github.com/simplechain-org/simplechain?status.svg)](https://godoc.org/github.com/simplechain-org/simplechain)
 [![Go Report Card](https://goreportcard.com/badge/github.com/simplechain-org/simplechain)](https://goreportcard.com/report/github.com/simplechain-org/simplechain)
 
@@ -12,12 +12,24 @@ ethash for POW mining.
 Building sipe which is the simplechain client requires both a Go (version 1.9 or later) and a C compiler.
 You can install them using your favourite package manager.
 Once the dependencies are installed, run
-
-    make sipe
+```bash
+$ make sipe
+```
 
 or, to build the full suite of utilities:
 
-    make all
+```bash
+$ make all
+```
+
+for developers, after your code completed , please run lint tools and fix lint errors.:
+
+```bash
+$ make lint
+```
+
+#### Development flow:
+checkout one branch -> complete your code -> make lint and make test -> git commit and git push -> make a pull request -> code rewiew and approve it -> merge dev -> release master 
 
 #### Defining the private genesis state (develop mode)
 
@@ -99,11 +111,3 @@ Please make sure your contributions adhere to our coding guidelines:
 Please see the [Developers' Guide](https://github.com/simplechain-org/simplechain/wiki/Developers'-Guide)
 for more details on configuring your environment, managing project dependencies and testing procedures.
 
-## For developer
-after completed your code, please run lint tools in code directory, eg.
-
-```bash
-$ go run build/ci.go lint consensus/scrypt/
-```
-
-and fix lint errors
