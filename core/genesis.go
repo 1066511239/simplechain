@@ -194,7 +194,7 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, constant
 	// Special case: don't change the existing config of a non-mainnet chain if no new
 	// config is supplied. These chains would get AllProtocolChanges (and a compat error)
 	// if we just continued here.
-	if genesis == nil && stored != params.MainnetGenesisHash {
+	if genesis == nil && stored != params.SipeMainnetGenesisHash {
 		return storedcfg, stored, nil
 	}
 
@@ -217,11 +217,17 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 	case g != nil:
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
+		//only for legacy test
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
+		//only for legacy test
 		return params.TestnetChainConfig
+	case ghash == params.SipeMainnetGenesisHash:
+		return params.SipeMainnetChainConfig
+	case ghash == params.SipeTestnetGenesisHash:
+		return params.SipeTestnetChainConfig
 	default:
-		return params.AllEthashProtocolChanges
+		return params.AllScryptProtocolChanges
 	}
 }
 
@@ -328,7 +334,32 @@ func DefaultTestnetGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultRinkebyGenesisBlock returns the Rinkeby network genesis block.
+// DefaultGenesisBlock returns the Ethereum main net genesis block.
+func DefaultSipeGenesisBlock() *Genesis {
+	return &Genesis{
+		Config:     params.SipeMainnetChainConfig,
+		Timestamp:  1546531200,
+		Nonce:      312,
+		ExtraData:  hexutil.MustDecode(SipeGenesisBlockExtraData),
+		GasLimit:   800000,
+		Difficulty: big.NewInt(120000),
+		Alloc:      GenesisAlloc{},
+	}
+}
+
+// DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
+func DefaultSipeTestnetGenesisBlock() *Genesis {
+	return &Genesis{
+		Config:     params.SipeTestnetChainConfig,
+		Nonce:      312,
+		ExtraData:  hexutil.MustDecode("0x73696d706c65636861696e20746573746e6574"),
+		GasLimit:   16777216,
+		Difficulty: big.NewInt(120000),
+		Alloc:      decodePrealloc(SipeTestnetAllocData),
+	}
+}
+
+// DefaultRinkebyGenesisBlock returns the Rinkeby network genesis block, only for genesis template
 func DefaultRinkebyGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.RinkebyChainConfig,
@@ -336,7 +367,7 @@ func DefaultRinkebyGenesisBlock() *Genesis {
 		ExtraData:  hexutil.MustDecode("0x52657370656374206d7920617574686f7269746168207e452e436172746d616e42eb768f2244c8811c63729a21a3569731535f067ffc57839b00206d1ad20c69a1981b489f772031b279182d99e65703f0076e4812653aab85fca0f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
 		GasLimit:   4700000,
 		Difficulty: big.NewInt(1),
-		Alloc:      decodePrealloc(rinkebyAllocData),
+		Alloc:      decodePrealloc(""),
 	}
 }
 
