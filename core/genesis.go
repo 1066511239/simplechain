@@ -155,7 +155,7 @@ func SetupGenesisBlock(db ethdb.Database, genesis *Genesis) (*params.ChainConfig
 }
 func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, constantinopleOverride *big.Int) (*params.ChainConfig, common.Hash, error) {
 	if genesis != nil && genesis.Config == nil {
-		return params.AllEthashProtocolChanges, common.Hash{}, errGenesisNoConfig
+		return params.AllScryptProtocolChanges, common.Hash{}, errGenesisNoConfig
 	}
 
 	// Just commit the new block if there is no stored genesis block.
@@ -194,7 +194,7 @@ func SetupGenesisBlockWithOverride(db ethdb.Database, genesis *Genesis, constant
 	// Special case: don't change the existing config of a non-mainnet chain if no new
 	// config is supplied. These chains would get AllProtocolChanges (and a compat error)
 	// if we just continued here.
-	if genesis == nil && stored != params.SipeMainnetGenesisHash {
+	if genesis == nil && stored != params.MainnetGenesisHash {
 		return storedcfg, stored, nil
 	}
 
@@ -217,15 +217,9 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 	case g != nil:
 		return g.Config
 	case ghash == params.MainnetGenesisHash:
-		//only for legacy test
 		return params.MainnetChainConfig
 	case ghash == params.TestnetGenesisHash:
-		//only for legacy test
 		return params.TestnetChainConfig
-	case ghash == params.SipeMainnetGenesisHash:
-		return params.SipeMainnetChainConfig
-	case ghash == params.SipeTestnetGenesisHash:
-		return params.SipeTestnetChainConfig
 	default:
 		return params.AllScryptProtocolChanges
 	}
@@ -288,7 +282,7 @@ func (g *Genesis) Commit(db ethdb.Database) (*types.Block, error) {
 
 	config := g.Config
 	if config == nil {
-		config = params.AllEthashProtocolChanges
+		config = params.AllScryptProtocolChanges
 	}
 	rawdb.WriteChainConfig(db, block.Hash(), config)
 	return block, nil
@@ -314,43 +308,19 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
-		Nonce:      66,
-		ExtraData:  hexutil.MustDecode("0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa"),
-		GasLimit:   5000,
-		Difficulty: big.NewInt(17179869184),
-		Alloc:      decodePrealloc(mainnetAllocData),
-	}
-}
-
-// DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
-func DefaultTestnetGenesisBlock() *Genesis {
-	return &Genesis{
-		Config:     params.TestnetChainConfig,
-		Nonce:      66,
-		ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
-		GasLimit:   16777216,
-		Difficulty: big.NewInt(1048576),
-		Alloc:      decodePrealloc(testnetAllocData),
-	}
-}
-
-// DefaultGenesisBlock returns the Ethereum main net genesis block.
-func DefaultSipeGenesisBlock() *Genesis {
-	return &Genesis{
-		Config:     params.SipeMainnetChainConfig,
 		Timestamp:  1546531200,
 		Nonce:      312,
 		ExtraData:  hexutil.MustDecode(SipeGenesisBlockExtraData),
 		GasLimit:   800000,
-		Difficulty: big.NewInt(120000),
+		Difficulty: big.NewInt(1200),
 		Alloc:      GenesisAlloc{},
 	}
 }
 
-// DefaultTestnetGenesisBlock returns the Ropsten network genesis block.
-func DefaultSipeTestnetGenesisBlock() *Genesis {
+// DefaultTestnetGenesisBlock returns the SimpleChain network genesis block.
+func DefaultTestnetGenesisBlock() *Genesis {
 	return &Genesis{
-		Config:     params.SipeTestnetChainConfig,
+		Config:     params.TestnetChainConfig,
 		Nonce:      312,
 		ExtraData:  hexutil.MustDecode("0x73696d706c65636861696e20746573746e6574"),
 		GasLimit:   16777216,
@@ -368,6 +338,18 @@ func DefaultRinkebyGenesisBlock() *Genesis {
 		GasLimit:   4700000,
 		Difficulty: big.NewInt(1),
 		Alloc:      decodePrealloc(""),
+	}
+}
+
+// DefaultEthashGenesisBlock returns the ethereum testnet network genesis block.
+func DefaultEthashGenesisBlock() *Genesis {
+	return &Genesis{
+		Config:     params.TestnetChainConfig,
+		Nonce:      66,
+		ExtraData:  hexutil.MustDecode("0x3535353535353535353535353535353535353535353535353535353535353535"),
+		GasLimit:   16777216,
+		Difficulty: big.NewInt(1048576),
+		Alloc:      decodePrealloc(EthTestnetAllocData),
 	}
 }
 

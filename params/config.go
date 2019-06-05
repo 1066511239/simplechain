@@ -25,39 +25,21 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	//only for legacy test
-	MainnetGenesisHash = common.HexToHash("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
-	//only for legacy test
-	TestnetGenesisHash     = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
-	SipeMainnetGenesisHash = common.HexToHash("0xe14dc0e8a8bdae45ce485baf32fd46ecd1e460174dbe3304c0e87309dd39791c")
-	SipeTestnetGenesisHash = common.HexToHash("0xfc26e8a96571fab7c359830a0651bcb442cdd63af5927fb1c74e4dddb7b759ae")
-
-	FoundationAddress common.Address = common.HexToAddress("0x992ec45ae0d2d2fcf97f4417cfd3f80505862fbc")
+	MainnetGenesisHash                = common.HexToHash("0xf9f3fa2cbfd9a6855d61aa25799a206368b031d25e14ad01e97b8bb8cd623bd0")
+	TestnetGenesisHash                = common.HexToHash("0xfc26e8a96571fab7c359830a0651bcb442cdd63af5927fb1c74e4dddb7b759ae")
+	FoundationAddress  common.Address = common.HexToAddress("0x992ec45ae0d2d2fcf97f4417cfd3f80505862fbc")
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
 // the chain it belongs to.
-var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{}
+var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
+	//TODO: for upgrade
+}
 
 var (
 	// MainnetChainConfig is the chain parameters to run a node on the main network.
-	MainnetChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(1),
-		HomesteadBlock:      big.NewInt(1150000),
-		DAOForkBlock:        big.NewInt(1920000),
-		DAOForkSupport:      true,
-		EIP150Block:         big.NewInt(2463000),
-		EIP150Hash:          common.HexToHash("0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"),
-		EIP155Block:         big.NewInt(2675000),
-		EIP158Block:         big.NewInt(2675000),
-		ByzantiumBlock:      big.NewInt(4370000),
-		ConstantinopleBlock: big.NewInt(7280000),
-		PetersburgBlock:     big.NewInt(7280000),
-		Ethash:              new(EthashConfig),
-	}
-
 	// about ChainID see https://chainid.network/
-	SipeMainnetChainConfig = &ChainConfig{
+	MainnetChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(109),
 		HomesteadBlock:      big.NewInt(0),
 		DAOForkBlock:        big.NewInt(0),
@@ -72,24 +54,8 @@ var (
 		Scrypt:              new(ScryptConfig),
 	}
 
-	// TestnetChainConfig contains the chain parameters to run a node on the Ropsten test network.
+	// TestnetChainConfig contains the chain parameters to run a node on the SimpleChain test network.
 	TestnetChainConfig = &ChainConfig{
-		ChainID:             big.NewInt(3),
-		HomesteadBlock:      big.NewInt(0),
-		DAOForkBlock:        nil,
-		DAOForkSupport:      true,
-		EIP150Block:         big.NewInt(0),
-		EIP150Hash:          common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d"),
-		EIP155Block:         big.NewInt(10),
-		EIP158Block:         big.NewInt(10),
-		ByzantiumBlock:      big.NewInt(1700000),
-		ConstantinopleBlock: big.NewInt(4230000),
-		PetersburgBlock:     big.NewInt(4939394),
-		Ethash:              new(EthashConfig),
-	}
-
-	// SipeTestnetChainConfig contains the chain parameters to run a node on the SimpleChain test network.
-	SipeTestnetChainConfig = &ChainConfig{
 		ChainID:             big.NewInt(110),
 		HomesteadBlock:      big.NewInt(0),
 		DAOForkBlock:        nil,
@@ -123,13 +89,6 @@ var (
 		},
 	}
 
-	// AllEthashProtocolChanges contains every protocol change (EIPs) introduced
-	// and accepted by the Ethereum core developers into the Ethash consensus.
-	//
-	// This configuration is intentionally not using keyed fields to force anyone
-	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
-
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
@@ -144,7 +103,7 @@ var (
 	// adding flags to the config to also have to set these fields.
 	AllScryptProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, new(ScryptConfig)}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil, nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, new(ScryptConfig)}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
