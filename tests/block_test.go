@@ -30,6 +30,7 @@ func TestBlockchain(t *testing.T) {
 	bt.skipLoad(`^bcForgedTest/bcForkUncle\.json`)
 	bt.skipLoad(`^bcMultiChainTest/(ChainAtoChainB_blockorder|CallContractFromNotBestBlock)`)
 	bt.skipLoad(`^bcTotalDifficultyTest/(lotsOfLeafs|lotsOfBranches|sideChainWithMoreTransactions)`)
+	bt.skipLoad(`^TransitionTests/bcByzantiumToConstantinopleFix/ConstantinopleFixTransition\.json`)
 	// Slow tests
 	bt.slow(`^bcExploitTest/DelegateCallSpam.json`)
 	bt.slow(`^bcExploitTest/ShanghaiLove.json`)
