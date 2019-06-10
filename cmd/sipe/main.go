@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/gosigar"
 	"github.com/simplechain-org/simplechain/accounts"
 	"github.com/simplechain-org/simplechain/accounts/keystore"
 	"github.com/simplechain-org/simplechain/cmd/utils"
@@ -38,6 +37,8 @@ import (
 	"github.com/simplechain-org/simplechain/log"
 	"github.com/simplechain-org/simplechain/metrics"
 	"github.com/simplechain-org/simplechain/node"
+
+	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -112,7 +113,6 @@ var (
 		utils.TestnetFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.ConstantinopleOverrideFlag,
 		utils.RPCCORSDomainFlag,
 		utils.RPCVirtualHostsFlag,
 		utils.EthStatsURLFlag,

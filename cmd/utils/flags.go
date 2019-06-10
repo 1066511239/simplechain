@@ -56,6 +56,7 @@ import (
 	"github.com/simplechain-org/simplechain/p2p/netutil"
 	"github.com/simplechain-org/simplechain/params"
 	whisper "github.com/simplechain-org/simplechain/whisper/whisperv6"
+
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -133,11 +134,7 @@ var (
 	}
 	TestnetFlag = cli.BoolFlag{
 		Name:  "testnet",
-		Usage: "Ropsten network: pre-configured proof-of-work test network",
-	}
-	ConstantinopleOverrideFlag = cli.Uint64Flag{
-		Name:  "override.constantinople",
-		Usage: "Manually specify constantinople fork-block, overriding the bundled setting",
+		Usage: "pre-configured proof-of-work simplechain test network",
 	}
 	DeveloperFlag = cli.BoolFlag{
 		Name:  "dev",
