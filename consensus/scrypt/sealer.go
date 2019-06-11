@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	// staleThreshold is the maximum depth of the acceptable stale but valid ethash solution.
+	// staleThreshold is the maximum depth of the acceptable stale but valid scrypt solution.
 	staleThreshold = 7
 )
 
@@ -232,7 +232,7 @@ func (powScrypt *PowScrypt) remote(notify []string, noverify bool) {
 		hash := powScrypt.SealHash(block.Header())
 
 		currentWork[0] = hash.Hex()
-		currentWork[1] = common.BytesToHash(new(big.Int).Div(two256, block.Difficulty()).Bytes()).Hex()
+		currentWork[1] = new(big.Int).Div(two256, block.Difficulty()).String()
 		currentWork[2] = hexutil.EncodeBig(block.Number())
 
 		// Trace the seal work fetched by remote sealer.
@@ -267,7 +267,7 @@ func (powScrypt *PowScrypt) remote(notify []string, noverify bool) {
 		}
 		// Make sure the result channel is assigned.
 		if results == nil {
-			log.Warn("Ethash result channel is empty, submitted mining result is rejected")
+			log.Warn("Scrypt result channel is empty, submitted mining result is rejected")
 			return false
 		}
 		log.Trace("Verified correct proof-of-work", "sealhash", sealhash, "elapsed", time.Since(start))

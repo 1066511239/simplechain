@@ -36,7 +36,7 @@ var (
 	ScryptMode = uint(0x30)
 )
 
-// Mode defines the type and amount of PoW verification an ethash engine makes.
+// Mode defines the type and amount of PoW verification an scrypt engine makes.
 type Mode uint
 
 const (
@@ -47,7 +47,7 @@ const (
 	ModeFullFake
 )
 
-// Config are the configuration parameters of the ethash.
+// Config are the configuration parameters of the scrypt.
 type Config struct {
 	PowMode Mode
 }
@@ -241,7 +241,7 @@ func (powScrypt *PowScrypt) SetThreads(threads int) {
 // Note the returned hashrate includes local hashrate, but also includes the total
 // hashrate of all remote miner.
 func (powScrypt *PowScrypt) Hashrate() float64 {
-	// Short circuit if we are run the ethash in normal/test mode.
+	// Short circuit if we are run the scrypt in normal/test mode.
 	if powScrypt.config.PowMode != ModeNormal && powScrypt.config.PowMode != ModeTest {
 		return powScrypt.hashrate.Rate1()
 	}
@@ -250,7 +250,7 @@ func (powScrypt *PowScrypt) Hashrate() float64 {
 	select {
 	case powScrypt.fetchRateCh <- res:
 	case <-powScrypt.exitCh:
-		// Return local hashrate only if ethash is stopped.
+		// Return local hashrate only if scrypt is stopped.
 		return powScrypt.hashrate.Rate1()
 	}
 
@@ -261,10 +261,10 @@ func (powScrypt *PowScrypt) Hashrate() float64 {
 // APIs implements consensus.Engine, returning the user facing RPC APIs.
 func (powScrypt *PowScrypt) APIs(chain consensus.ChainReader) []rpc.API {
 	// In order to ensure backward compatibility, we exposes scrypt RPC APIs
-	// to both sipe and scrypt namespaces.
+	// to both eth and scrypt namespaces.
 	return []rpc.API{
 		{
-			Namespace: "sipe",
+			Namespace: "eth",
 			Version:   "1.0",
 			Service:   &API{powScrypt},
 			Public:    true,
