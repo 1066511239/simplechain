@@ -16,7 +16,7 @@
 
 // +build none
 
-// This file contains a miner stress test based on the Ethash consensus engine.
+// This file contains a miner stress test based on the scrypt consensus engine.
 package main
 
 import (

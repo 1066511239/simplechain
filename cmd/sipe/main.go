@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-// geth is the official command-line client for Ethereum.
+// sipe is the official command-line client for SimpleChain base on Ethereum.
 package main
 
 import (
@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/gosigar"
 	"github.com/simplechain-org/simplechain/accounts"
 	"github.com/simplechain-org/simplechain/accounts/keystore"
 	"github.com/simplechain-org/simplechain/cmd/utils"
@@ -38,11 +37,13 @@ import (
 	"github.com/simplechain-org/simplechain/log"
 	"github.com/simplechain-org/simplechain/metrics"
 	"github.com/simplechain-org/simplechain/node"
+
+	"github.com/elastic/gosigar"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
 const (
-	clientIdentifier = "geth" // Client identifier to advertise over the network
+	clientIdentifier = "sipe" // Client identifier to advertise over the network
 )
 
 var (
@@ -112,7 +113,6 @@ var (
 		utils.TestnetFlag,
 		utils.VMEnableDebugFlag,
 		utils.NetworkIdFlag,
-		utils.ConstantinopleOverrideFlag,
 		utils.RPCCORSDomainFlag,
 		utils.RPCVirtualHostsFlag,
 		utils.EthStatsURLFlag,
@@ -159,8 +159,8 @@ var (
 )
 
 func init() {
-	// Initialize the CLI app and start Geth
-	app.Action = geth
+	// Initialize the CLI app and start Sipe
+	app.Action = sipe
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2019 The go-simplechain Authors"
 	app.Commands = []cli.Command{
@@ -240,10 +240,10 @@ func main() {
 	}
 }
 
-// geth is the main entry point into the system if no special subcommand is ran.
+// sipe is the main entry point into the system if no special subcommand is ran.
 // It creates a default node based on the command line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
-func geth(ctx *cli.Context) error {
+func sipe(ctx *cli.Context) error {
 	if args := ctx.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}

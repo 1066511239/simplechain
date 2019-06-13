@@ -50,7 +50,7 @@ const (
 // all registered services.
 type Config struct {
 	// Name sets the instance name of the node. It must not contain the / character and is
-	// used in the devp2p node identifier. The instance name of geth is "geth". If no
+	// used in the devp2p node identifier. The instance name of sipe is "sipe". If no
 	// value is specified, the basename of the current executable is used.
 	Name string `toml:"-"`
 
@@ -237,8 +237,8 @@ func DefaultWSEndpoint() string {
 // NodeName returns the devp2p node identifier.
 func (c *Config) NodeName() string {
 	name := c.name()
-	// Backwards compatibility: previous versions used title-cased "Geth", keep that.
-	if name == "geth" || name == "geth-testnet" {
+	// Backwards compatibility: previous versions used title-cased "Sipe", keep that.
+	if name == "sipe" || name == "sipe-testnet" {
 		name = "Sipe"
 	}
 	if c.UserIdent != "" {
@@ -284,7 +284,7 @@ func (c *Config) ResolvePath(path string) string {
 	// by geth 1.4 are used if they exist.
 	if warn, isOld := isOldGethResource[path]; isOld {
 		oldpath := ""
-		if c.name() == "geth" {
+		if c.name() == "sipe" {
 			oldpath = filepath.Join(c.DataDir, path)
 		}
 		if oldpath != "" && common.FileExist(oldpath) {
