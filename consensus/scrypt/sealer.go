@@ -232,7 +232,7 @@ func (powScrypt *PowScrypt) remote(notify []string, noverify bool) {
 		hash := powScrypt.SealHash(block.Header())
 
 		currentWork[0] = hash.Hex()
-		currentWork[1] = new(big.Int).Div(two256, block.Difficulty()).String()
+		currentWork[1] = common.BytesToHash(new(big.Int).Div(two256, block.Difficulty()).Bytes()).Hex()
 		currentWork[2] = hexutil.EncodeBig(block.Number())
 
 		// Trace the seal work fetched by remote sealer.
