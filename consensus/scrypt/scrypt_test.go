@@ -95,6 +95,9 @@ func TestHashRate(t *testing.T) {
 	if tot := scrypt.Hashrate(); tot != float64(expect) {
 		t.Error("expect total hashrate should be same")
 	}
+	if tot := api.GetHashrate();tot != expect{
+		t.Error("expect total hashrate should be same")
+	}
 }
 
 func TestClosedRemoteSealer(t *testing.T) {

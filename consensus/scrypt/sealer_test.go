@@ -2,6 +2,7 @@ package scrypt
 
 import (
 	"encoding/json"
+	"github.com/simplechain-org/simplechain/common/hexutil"
 	"io/ioutil"
 	"math/big"
 	"net"
@@ -52,7 +53,7 @@ func TestRemoteNotify(t *testing.T) {
 		t.Fatal("tcp listener not ready for more than 10 seconds")
 	}
 
-	// Create the custom ethash engine
+	// Create the custom scrypt engine
 	scrypt := NewTester([]string{"http://" + listener.Addr().String()}, false)
 	defer scrypt.Close()
 
@@ -69,6 +70,10 @@ func TestRemoteNotify(t *testing.T) {
 		target := new(big.Int).Div(new(big.Int).Lsh(big.NewInt(1), 256), header.Difficulty)
 		if want := common.BytesToHash(target.Bytes()).Hex(); work[1] != want {
 			t.Errorf("work packet target mismatch: have %s, want %s", work[1], want)
+		}
+		blockNumber, _ := hexutil.DecodeBig(work[2])
+		if blockNumber.Cmp(big.NewInt(1)) != 0  {
+			t.Errorf("work pack target mismatch: have %s,want 1", work[2])
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatalf("notification timed out")
@@ -116,7 +121,15 @@ func TestRemoteMultiNotify(t *testing.T) {
 	}
 	for i := 0; i < cap(sink); i++ {
 		select {
-		case <-sink:
+		case work := <-sink:
+			target := new(big.Int).Div(new(big.Int).Lsh(big.NewInt(1), 256), big.NewInt(100))
+			if want := common.BytesToHash(target.Bytes()).Hex(); work[1] != want {
+				t.Errorf("work packet target mismatch: have %s, want %s", work[1], want)
+			}
+			blockNumber, _ := hexutil.DecodeBig(work[2])
+			if blockNumber.Cmp(big.NewInt(0)) < 0 || blockNumber.Cmp(big.NewInt(int64(cap(sink)))) > 0 {
+				t.Errorf("work pack target mistake: blockNumber %s", work[2])
+			}
 		case <-time.After(3 * time.Second):
 			t.Fatalf("notification %d timed out", i)
 		}
@@ -129,7 +142,7 @@ func TestStaleSubmission(t *testing.T) {
 	defer scrypt.Close()
 	api := &API{scrypt}
 
-	fakeNonce, fakeDigest := types.BlockNonce{0x01, 0x02, 0x03}, common.HexToHash("deadbeef")
+	fakeNonce, fakeDigest := types.BlockNonce{}, common.HexToHash("walker")
 
 	testcases := []struct {
 		headers     []*types.Header
@@ -187,7 +200,7 @@ func TestStaleSubmission(t *testing.T) {
 		select {
 		case res := <-results:
 			if res.Header().Nonce != fakeNonce {
-				t.Errorf("case %d block nonce mismatch, want %s, get %s", id+1, fakeNonce, res.Header().Nonce)
+				t.Errorf("case %d block nonce mismatch, want %v, get %v", id+1, fakeNonce, res.Header().Nonce)
 			}
 			if res.Header().MixDigest != fakeDigest {
 				t.Errorf("case %d block digest mismatch, want %s, get %s", id+1, fakeDigest, res.Header().MixDigest)
