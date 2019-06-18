@@ -14,13 +14,18 @@ import (
 func TestTestMode(t *testing.T) {
 	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
 
-	scrypt := NewTester(nil, false)
+	scrypt := NewScrypt(Config{}, nil, false)
 	defer scrypt.Close()
+	scrypt.SetThreads(2)
 
 	results := make(chan *types.Block)
 	err := scrypt.Seal(nil, types.NewBlockWithHeader(header), results, nil)
 	if err != nil {
 		t.Fatalf("failed to seal block: %v", err)
+	}
+
+	if threads := scrypt.Threads(); threads != 2 {
+		t.Fatalf("work packet target mismatch: have %d, want 2", threads)
 	}
 	select {
 	case block := <-results:
@@ -95,7 +100,7 @@ func TestHashRate(t *testing.T) {
 	if tot := scrypt.Hashrate(); tot != float64(expect) {
 		t.Error("expect total hashrate should be same")
 	}
-	if tot := api.GetHashrate();tot != expect{
+	if tot := api.GetHashrate(); tot != expect {
 		t.Error("expect total hashrate should be same")
 	}
 }
