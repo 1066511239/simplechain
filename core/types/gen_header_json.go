@@ -33,6 +33,26 @@ func (h Header) MarshalJSON() ([]byte, error) {
 		Nonce       BlockNonce     `json:"nonce"`
 		Hash        common.Hash    `json:"hash"`
 	}
+
+	// type Header struct { //for tests/block_test.go  get blockdata
+	// 	ParentHash  common.Hash    `json:"parentHash"       gencodec:"required"`
+	// 	UncleHash   common.Hash    `json:"uncleHash"       gencodec:"required"`
+	// 	Coinbase    common.Address `json:"coinbase"            gencodec:"required"`
+	// 	Root        common.Hash    `json:"stateRoot"        gencodec:"required"`
+	// 	TxHash      common.Hash    `json:"transactionsTrie" gencodec:"required"`
+	// 	ReceiptHash common.Hash    `json:"receiptTrie"     gencodec:"required"`
+	// 	Bloom       Bloom          `json:"bloom"        gencodec:"required"`
+	// 	Difficulty  *hexutil.Big   `json:"difficulty"       gencodec:"required"`
+	// 	Number      *hexutil.Big   `json:"number"           gencodec:"required"`
+	// 	GasLimit    hexutil.Uint64 `json:"gasLimit"         gencodec:"required"`
+	// 	GasUsed     hexutil.Uint64 `json:"gasUsed"          gencodec:"required"`
+	// 	Time        hexutil.Uint64 `json:"timestamp"        gencodec:"required"`
+	// 	Extra       hexutil.Bytes  `json:"extraData"        gencodec:"required"`
+	// 	MixDigest   common.Hash    `json:"mixHash"`
+	// 	Nonce       BlockNonce     `json:"nonce"`
+	// 	Hash        common.Hash    `json:"hash"`
+	// }
+
 	var enc Header
 	enc.ParentHash = h.ParentHash
 	enc.UncleHash = h.UncleHash

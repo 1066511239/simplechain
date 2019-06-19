@@ -28,7 +28,7 @@ import (
 	"github.com/simplechain-org/simplechain/common/hexutil"
 	"github.com/simplechain-org/simplechain/common/math"
 	"github.com/simplechain-org/simplechain/consensus"
-	"github.com/simplechain-org/simplechain/consensus/ethash"
+	"github.com/simplechain-org/simplechain/consensus/scrypt"
 	"github.com/simplechain-org/simplechain/core"
 	"github.com/simplechain-org/simplechain/core/state"
 	"github.com/simplechain-org/simplechain/core/types"
@@ -100,6 +100,8 @@ func (t *BlockTest) Run() error {
 		return UnsupportedForkError{t.json.Network}
 	}
 
+	config = Forks["ConstantinopleFix"]
+
 	// import pre accounts & construct test genesis block & state root
 	db := ethdb.NewMemDatabase()
 	gblock, err := t.genesis(config).Commit(db)
@@ -114,9 +116,12 @@ func (t *BlockTest) Run() error {
 	}
 	var engine consensus.Engine
 	if t.json.SealEngine == "NoProof" {
-		engine = ethash.NewFaker()
+		//engine = ethash.NewFaker()
+		engine = scrypt.NewFaker()
+
 	} else {
-		engine = ethash.NewShared()
+		//engine = ethash.NewShared()
+		engine = scrypt.NewFaker()
 	}
 	chain, err := core.NewBlockChain(db, &core.CacheConfig{TrieCleanLimit: 0}, config, engine, vm.Config{}, nil)
 	if err != nil {

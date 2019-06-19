@@ -65,7 +65,7 @@ var Forks = map[string]*params.ChainConfig{
 		PetersburgBlock:     big.NewInt(10000000),
 	},
 	"ConstantinopleFix": {
-		ChainID:             big.NewInt(1),
+		ChainID:             big.NewInt(109),
 		HomesteadBlock:      big.NewInt(0),
 		EIP150Block:         big.NewInt(0),
 		EIP155Block:         big.NewInt(0),
