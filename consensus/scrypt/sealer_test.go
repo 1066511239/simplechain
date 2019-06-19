@@ -2,7 +2,6 @@ package scrypt
 
 import (
 	"encoding/json"
-	"github.com/simplechain-org/simplechain/common/hexutil"
 	"io/ioutil"
 	"math/big"
 	"net"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/common/hexutil"
 	"github.com/simplechain-org/simplechain/core/types"
 )
 
@@ -72,7 +72,7 @@ func TestRemoteNotify(t *testing.T) {
 			t.Errorf("work packet target mismatch: have %s, want %s", work[1], want)
 		}
 		blockNumber, _ := hexutil.DecodeBig(work[2])
-		if blockNumber.Cmp(big.NewInt(1)) != 0  {
+		if blockNumber.Cmp(big.NewInt(1)) != 0 {
 			t.Errorf("work pack target mismatch: have %s,want 1", work[2])
 		}
 	case <-time.After(3 * time.Second):
