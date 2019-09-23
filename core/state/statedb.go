@@ -570,7 +570,7 @@ func (self *StateDB) GetRefund() uint64 {
 
 // Finalise finalises the state by removing the self destructed objects
 // and clears the journal as well as the refunds.
-func (s *StateDB) Finalise(deleteEmptyObjects bool) {
+func (s *StateDB) Finalise() {
 	for addr := range s.journal.dirties {
 		stateObject, exist := s.stateObjects[addr]
 		if !exist {
@@ -583,7 +583,7 @@ func (s *StateDB) Finalise(deleteEmptyObjects bool) {
 			continue
 		}
 
-		if stateObject.suicided || (deleteEmptyObjects && stateObject.empty()) {
+		if stateObject.suicided || stateObject.empty() {
 			s.deleteStateObject(stateObject)
 		} else {
 			stateObject.updateRoot(s.db)
@@ -598,8 +598,8 @@ func (s *StateDB) Finalise(deleteEmptyObjects bool) {
 // IntermediateRoot computes the current root hash of the state trie.
 // It is called in between transactions to get the root hash that
 // goes into transaction receipts.
-func (s *StateDB) IntermediateRoot(deleteEmptyObjects bool) common.Hash {
-	s.Finalise(deleteEmptyObjects)
+func (s *StateDB) IntermediateRoot() common.Hash {
+	s.Finalise()
 	return s.trie.Hash()
 }
 

@@ -240,7 +240,7 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 			statedb.SetState(addr, key, value)
 		}
 	}
-	root := statedb.IntermediateRoot(false)
+	root := statedb.IntermediateRoot()
 	head := &types.Header{
 		Number:     new(big.Int).SetUint64(g.Number),
 		Nonce:      types.EncodeNonce(g.Nonce),
@@ -311,7 +311,7 @@ func DefaultGenesisBlock() *Genesis {
 		Timestamp:  1546531200,
 		Nonce:      312,
 		ExtraData:  hexutil.MustDecode(SipeGenesisBlockExtraData),
-		GasLimit:   800000,
+		GasLimit:   8000000,
 		Difficulty: big.NewInt(1200),
 		Alloc:      GenesisAlloc{},
 	}

@@ -25,12 +25,11 @@ import (
 	"sync"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/simplechain-org/simplechain/accounts"
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/common/hexutil"
 	"github.com/simplechain-org/simplechain/consensus"
-	"github.com/simplechain-org/simplechain/consensus/misc"
 	"github.com/simplechain-org/simplechain/core/state"
 	"github.com/simplechain-org/simplechain/core/types"
 	"github.com/simplechain-org/simplechain/crypto"
@@ -324,9 +323,9 @@ func (c *Clique) verifyHeader(chain consensus.ChainReader, header *types.Header,
 		}
 	}
 	// If all checks passed, validate any special fields for hard forks
-	if err := misc.VerifyForkHashes(chain.Config(), header, false); err != nil {
-		return err
-	}
+	//if err := misc.VerifyForkHashes(chain.Config(), header, false); err != nil {
+	//	return err
+	//}
 	// All basic checks passed, verify cascading fields
 	return c.verifyCascadingFields(chain, header, parents)
 }
@@ -581,7 +580,7 @@ func (c *Clique) Prepare(chain consensus.ChainReader, header *types.Header) erro
 // rewards given, and returns the final block.
 func (c *Clique) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	// No block rewards in PoA, so the state remains as is and uncles are dropped
-	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
+	header.Root = state.IntermediateRoot()
 	header.UncleHash = types.CalcUncleHash(nil)
 
 	// Assemble and return the final block for sealing
