@@ -100,6 +100,7 @@ type Account struct {
 	Balance  *big.Int
 	Root     common.Hash // merkle root of the storage trie
 	CodeHash []byte
+	Hashes   []common.Hash
 }
 
 // newObject creates a state object.
@@ -291,6 +292,21 @@ func (self *stateObject) SetBalance(amount *big.Int) {
 
 func (self *stateObject) setBalance(amount *big.Int) {
 	self.data.Balance = amount
+}
+
+func (self *stateObject) SaveHash(hash common.Hash) {
+	self.db.journal.append(addHash{
+		account: &self.address,
+		prev:    self.data.Hashes,
+	})
+	self.addHash(hash)
+}
+
+func (self *stateObject) addHash(hash common.Hash) {
+	self.data.Hashes = append(self.data.Hashes, hash)
+}
+func (self *stateObject) recoveryHashes(hashes []common.Hash) {
+	self.data.Hashes = hashes
 }
 
 // Return the gas back to the origin. Used by the Virtual machine or Closures

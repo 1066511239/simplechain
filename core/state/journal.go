@@ -103,6 +103,11 @@ type (
 		account *common.Address
 		prev    *big.Int
 	}
+	addHash struct {
+		account *common.Address
+		prev    []common.Hash
+	}
+
 	nonceChange struct {
 		account *common.Address
 		prev    uint64
@@ -176,6 +181,14 @@ func (ch balanceChange) revert(s *StateDB) {
 }
 
 func (ch balanceChange) dirtied() *common.Address {
+	return ch.account
+}
+
+func (ch addHash) revert(s *StateDB) {
+	s.getStateObject(*ch.account).recoveryHashes(ch.prev)
+}
+
+func (ch addHash) dirtied() *common.Address {
 	return ch.account
 }
 

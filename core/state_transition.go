@@ -18,6 +18,8 @@ package core
 
 import (
 	"errors"
+	"fmt"
+	"github.com/simplechain-org/simplechain/crypto"
 	"math"
 	"math/big"
 
@@ -189,13 +191,13 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	contractCreation := msg.To() == nil
 
 	// Pay intrinsic gas
-	gas, err := IntrinsicGas(st.data, contractCreation, true)
-	if err != nil {
-		return nil, 0, false, err
-	}
-	if err = st.useGas(gas); err != nil {
-		return nil, 0, false, err
-	}
+	//gas, err := IntrinsicGas(st.data, contractCreation, true)
+	//if err != nil {
+	//	return nil, 0, false, err
+	//}
+	//if err = st.useGas(gas); err != nil {
+	//	return nil, 0, false, err
+	//}
 
 	var (
 		evm = st.evm
@@ -204,6 +206,16 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// error.
 		vmerr error
 	)
+	if st.to() == common.HexToAddress("0x94886b67a03e0f86ec185b1a8afda964642c0566") {
+		fmt.Println("call Hash")
+		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
+
+		hash := crypto.Keccak256Hash(msg.From().Bytes())
+		ret, err := evm.CallHash(sender, msg.From(), hash)
+		fmt.Println("save hash:  ", msg.From().String(), hash.String())
+		return ret, 0, false, err
+	}
+
 	if contractCreation {
 		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)
 	} else {
@@ -220,8 +232,8 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 			return nil, 0, false, vmerr
 		}
 	}
-	st.refundGas()
-	st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	//st.refundGas()
+	//st.state.AddBalance(st.evm.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
 
 	return ret, st.gasUsed(), vmerr != nil, err
 }

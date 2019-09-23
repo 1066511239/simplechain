@@ -17,6 +17,7 @@
 package core
 
 import (
+	"fmt"
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/consensus"
 	"github.com/simplechain-org/simplechain/core/state"
@@ -24,6 +25,7 @@ import (
 	"github.com/simplechain-org/simplechain/core/vm"
 	"github.com/simplechain-org/simplechain/crypto"
 	"github.com/simplechain-org/simplechain/params"
+	"time"
 )
 
 // StateProcessor is a basic Processor, which takes care of transitioning
@@ -81,6 +83,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *uint64, cfg vm.Config) (*types.Receipt, uint64, error) {
+	fmt.Println("ApplyTransaction: start  ", time.Now(), time.Now().UnixNano())
 	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, 0, err
@@ -113,6 +116,6 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	// Set the receipt logs and create a bloom for filtering
 	receipt.Logs = statedb.GetLogs(tx.Hash())
 	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
-
+	fmt.Println("ApplyTransaction: finish  ", time.Now(), time.Now().UnixNano())
 	return receipt, gas, err
 }

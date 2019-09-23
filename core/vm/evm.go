@@ -38,6 +38,8 @@ type (
 	// GetHashFunc returns the nth block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
+
+	SaveHashFunc func(StateDB, common.Address, common.Hash)
 )
 
 // run runs the given contract and takes care of running precompiles with a fallback to the byte code interpreter.
@@ -77,6 +79,8 @@ type Context struct {
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
+
+	SaveHash SaveHashFunc
 
 	// Message information
 	Origin   common.Address // Provides information for ORIGIN
@@ -197,10 +201,8 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		snapshot = evm.StateDB.Snapshot()
 	)
 	if !evm.StateDB.Exist(addr) {
-		precompiles := PrecompiledContractsHomestead
-		//if evm.ChainConfig().IsByzantium(evm.BlockNumber) {
-		precompiles = PrecompiledContractsByzantium
-		//}
+		precompiles := PrecompiledContractsByzantium
+
 		if precompiles[addr] == nil && value.Sign() == 0 {
 			// Calling a non existing account, don't do anything, but ping the tracer
 			if evm.vmConfig.Debug && evm.depth == 0 {
@@ -240,6 +242,22 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		}
 	}
 	return ret, contract.Gas, err
+}
+
+func (evm *EVM) CallHash(caller ContractRef, addr common.Address, input common.Hash) (ret []byte, err error) {
+	if evm.vmConfig.NoRecursion && evm.depth > 0 {
+		return nil, nil
+	}
+
+	// Fail if we're trying to execute above the call depth limit
+	if evm.depth > int(params.CallCreateDepth) {
+		return nil, ErrDepth
+	}
+
+	evm.SaveHash(evm.StateDB, addr, input)
+	//evm.Transfer(evm.StateDB, caller.Address(), to.Address(), value)
+
+	return input.Bytes(), nil
 }
 
 // CallCode executes the contract associated with the addr with the given input
