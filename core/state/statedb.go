@@ -204,6 +204,13 @@ func (self *StateDB) Empty(addr common.Address) bool {
 }
 
 // Retrieve the balance from the given address or 0 if object not found
+func (self *StateDB) GetHashes(addr common.Address) []common.Hash {
+	stateObject := self.getStateObject(addr)
+	if stateObject != nil {
+		return stateObject.Hashes()
+	}
+	return []common.Hash{}
+}
 func (self *StateDB) GetBalance(addr common.Address) *big.Int {
 	stateObject := self.getStateObject(addr)
 	if stateObject != nil {

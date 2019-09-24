@@ -18,10 +18,10 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"github.com/simplechain-org/simplechain/crypto"
 	"math"
 	"math/big"
+	"strconv"
 
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/core/vm"
@@ -183,21 +183,12 @@ func (st *StateTransition) preCheck() error {
 // returning the result including the used gas. It returns an error if failed.
 // An error indicates a consensus issue.
 func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
-	if err = st.preCheck(); err != nil {
-		return
-	}
+	//if err = st.preCheck(); err != nil {
+	//	return
+	//}
 	msg := st.msg
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
-
-	// Pay intrinsic gas
-	//gas, err := IntrinsicGas(st.data, contractCreation, true)
-	//if err != nil {
-	//	return nil, 0, false, err
-	//}
-	//if err = st.useGas(gas); err != nil {
-	//	return nil, 0, false, err
-	//}
 
 	var (
 		evm = st.evm
@@ -207,12 +198,10 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		vmerr error
 	)
 	if st.to() == common.HexToAddress("0x94886b67a03e0f86ec185b1a8afda964642c0566") {
-		fmt.Println("call Hash")
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
 
-		hash := crypto.Keccak256Hash(msg.From().Bytes())
+		hash := crypto.Keccak256Hash([]byte(strconv.Itoa(int(msg.Nonce()))))
 		ret, err := evm.CallHash(sender, msg.From(), hash)
-		fmt.Println("save hash:  ", msg.From().String(), hash.String())
 		return ret, 0, false, err
 	}
 

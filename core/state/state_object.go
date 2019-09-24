@@ -300,6 +300,11 @@ func (self *stateObject) SaveHash(hash common.Hash) {
 		prev:    self.data.Hashes,
 	})
 	self.addHash(hash)
+
+	fmt.Printf("Save hashes: %d\n", len(self.data.Hashes))
+	//for _,hash :=range self.data.Hashes{
+	//	fmt.Println("hash: ",hash.String())
+	//}
 }
 
 func (self *stateObject) addHash(hash common.Hash) {
@@ -385,6 +390,10 @@ func (self *stateObject) CodeHash() []byte {
 
 func (self *stateObject) Balance() *big.Int {
 	return self.data.Balance
+}
+
+func (self *stateObject) Hashes() []common.Hash {
+	return self.data.Hashes
 }
 
 func (self *stateObject) Nonce() uint64 {
