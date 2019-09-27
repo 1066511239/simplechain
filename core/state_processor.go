@@ -17,7 +17,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/consensus"
 	"github.com/simplechain-org/simplechain/core/state"
@@ -89,7 +88,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	if err != nil {
 		return nil, 0, err
 	}
-	if *msg.To() == common.HexToAddress("0x0000000000000000000000000000000000000000") {
+	if *msg.To() == common.HexToAddress("0xBd770416a3345F91E4B34576cb804a576fa48EB1") {
 		//st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
 		//err := st.evm.CallHash(sender, msg.From(), common.BytesToHash(msg.Data()[4:]))
 		statedb.SetNonce(msg.From(), statedb.GetNonce(msg.From())+1)
@@ -108,7 +107,7 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 		// Set the receipt logs and create a bloom for filtering
 		//receipt.Logs = statedb.GetLogs(tx.Hash())
 		receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
-		fmt.Println(receipt.Status, receipt.TxHash.String())
+		//fmt.Println(receipt.Status, receipt.TxHash.String())
 		return receipt, 0, err
 
 	} else {
