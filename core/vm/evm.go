@@ -244,20 +244,19 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	return ret, contract.Gas, err
 }
 
-func (evm *EVM) CallHash(caller ContractRef, addr common.Address, input common.Hash) (ret []byte, err error) {
+func (evm *EVM) CallHash(caller ContractRef, addr common.Address, input common.Hash) (err error) {
 	if evm.vmConfig.NoRecursion && evm.depth > 0 {
-		return nil, nil
+		return nil
 	}
 
 	// Fail if we're trying to execute above the call depth limit
 	if evm.depth > int(params.CallCreateDepth) {
-		return nil, ErrDepth
+		return ErrDepth
 	}
 
 	evm.SaveHash(evm.StateDB, addr, input)
 	//evm.Transfer(evm.StateDB, caller.Address(), to.Address(), value)
-
-	return input.Bytes(), nil
+	return nil
 }
 
 // CallCode executes the contract associated with the addr with the given input

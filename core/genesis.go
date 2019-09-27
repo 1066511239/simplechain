@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/simplechain-org/simplechain/core/vm"
 	"math/big"
 	"strings"
 
@@ -41,6 +42,8 @@ import (
 //go:generate gencodec -type GenesisAccount -field-override genesisAccountMarshaling -out gen_genesis_account.go
 
 var errGenesisNoConfig = errors.New("genesis has no chain configuration")
+
+const HashBin = `608060405234801561001057600080fd5b50610151806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c806343e08ad114610030575b600080fd5b61005c6004803603602081101561004657600080fd5b810190808035906020019092919050505061005e565b005b6000151560008083815260200190815260200160002060009054906101000a900460ff161515146100f7576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040180806020018281038252600e8152602001807f686173682077617320736176656400000000000000000000000000000000000081525060200191505060405180910390fd5b600160008083815260200190815260200160002060006101000a81548160ff0219169083151502179055505056fea165627a7a72305820d81e7d0e38c463192996355be6495b7362eacf783f0c16dd58dcd765419dda4a0029`
 
 // Genesis specifies the header fields, state of a genesis block. It also defines hard
 // fork switch-over blocks through the chain configuration.
@@ -233,6 +236,39 @@ func (g *Genesis) ToBlock(db ethdb.Database) *types.Block {
 	}
 	statedb, _ := state.New(common.Hash{}, state.NewDatabase(db))
 	for addr, account := range g.Alloc {
+		if len(account.Code) > 4 && bytes.Equal(account.Code[:4], []byte{0x60, 0x80, 0x60, 0x40}) {
+			//create contract
+			context := vm.Context{
+				CanTransfer: CanTransfer,
+				Transfer:    Transfer,
+				GetHash:     func(uint64) common.Hash { return common.Hash{} },
+				Origin:      addr,
+				Coinbase:    g.Coinbase,
+				BlockNumber: big.NewInt(0),
+				Time:        big.NewInt(int64(g.Timestamp)),
+				Difficulty:  g.Difficulty,
+				GasLimit:    g.GasLimit,
+				GasPrice:    big.NewInt(0),
+			}
+			evm := vm.NewEVM(context, statedb, g.Config, vm.Config{})
+			res, contractAddr, returnGas, suberr := evm.Create(vm.AccountRef(addr), account.Code, g.GasLimit, big.NewInt(0))
+			if suberr != nil {
+				log.Error("contract create failed", "error info", suberr.Error())
+				return nil
+			}
+			if account.Balance != nil {
+				statedb.AddBalance(contractAddr, account.Balance)
+			}
+			log.Info("contract info", "address", contractAddr, "return gas", returnGas, "contract code", fmt.Sprintf("%x", res))
+
+		} else {
+			if account.Balance != nil {
+				statedb.AddBalance(addr, account.Balance)
+			}
+			statedb.SetCode(addr, account.Code)
+			statedb.SetNonce(addr, account.Nonce)
+		}
+
 		statedb.AddBalance(addr, account.Balance)
 		statedb.SetCode(addr, account.Code)
 		statedb.SetNonce(addr, account.Nonce)
@@ -304,6 +340,10 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 	return g.MustCommit(db)
 }
 
+var defaultGenesisAlloc = map[common.Address]GenesisAccount{
+	common.HexToAddress("0x0000000000000000000000000000000000000000"): {Code: common.FromHex(HashBin), Balance: big.NewInt(0)},
+}
+
 // DefaultGenesisBlock returns the Ethereum main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
@@ -313,7 +353,7 @@ func DefaultGenesisBlock() *Genesis {
 		ExtraData:  hexutil.MustDecode(SipeGenesisBlockExtraData),
 		GasLimit:   8000000,
 		Difficulty: big.NewInt(1200),
-		Alloc:      GenesisAlloc{},
+		Alloc:      defaultGenesisAlloc,
 	}
 }
 

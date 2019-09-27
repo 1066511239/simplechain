@@ -18,6 +18,7 @@ package miner
 
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"sync"
 	"sync/atomic"
@@ -731,16 +732,19 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 					inc:   true,
 				}
 			}
+			fmt.Println("interrupt... ", atomic.LoadInt32(interrupt) == commitInterruptNewHead)
 			return atomic.LoadInt32(interrupt) == commitInterruptNewHead
 		}
-		// If we don't have enough gas for any further transactions then we're done
-		if w.current.gasPool.Gas() < params.TxGas {
-			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
-			break
-		}
+		//// If we don't have enough gas for any further transactions then we're done
+		//if w.current.gasPool.Gas() < params.TxGas {
+		//	fmt.Println("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+		//	log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+		//	break
+		//}
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
 		if tx == nil {
+			fmt.Println("tx.peek() nil")
 			break
 		}
 		// Error may be ignored here. The error has already been checked
@@ -756,6 +760,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
+			log.Info("Gas limit exceeded for current block", "sender", from)
 			log.Trace("Gas limit exceeded for current block", "sender", from)
 			txs.Pop()
 
@@ -782,6 +787,8 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			txs.Shift()
 		}
 	}
+
+	fmt.Println("commitTransaction", "count:", w.current.tcount)
 
 	if !w.isRunning() && len(coalescedLogs) > 0 {
 		// We don't push the pendingLogsEvent while we are mining. The reason is that

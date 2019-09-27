@@ -18,15 +18,12 @@ package core
 
 import (
 	"errors"
-	"github.com/simplechain-org/simplechain/crypto"
-	"math"
-	"math/big"
-	"strconv"
-
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/core/vm"
 	"github.com/simplechain-org/simplechain/log"
 	"github.com/simplechain-org/simplechain/params"
+	"math"
+	"math/big"
 )
 
 var (
@@ -190,6 +187,12 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
 
+	if st.to() == common.HexToAddress("0x94886b67a03e0f86ec185b1a8afda964642c0566") {
+		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
+		err := st.evm.CallHash(sender, msg.From(), common.BytesToHash(msg.Data()[4:]))
+		return nil, 0, false, err
+	}
+
 	var (
 		evm = st.evm
 		// vm errors do not effect consensus and are therefor
@@ -197,13 +200,6 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 		// error.
 		vmerr error
 	)
-	if st.to() == common.HexToAddress("0x94886b67a03e0f86ec185b1a8afda964642c0566") {
-		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
-
-		hash := crypto.Keccak256Hash([]byte(strconv.Itoa(int(msg.Nonce()))))
-		ret, err := evm.CallHash(sender, msg.From(), hash)
-		return ret, 0, false, err
-	}
 
 	if contractCreation {
 		ret, _, st.gas, vmerr = evm.Create(sender, st.data, st.gas, st.value)
