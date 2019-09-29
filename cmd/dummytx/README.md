@@ -39,22 +39,22 @@
 ##### 导入0xffd79941b7085805f48ded97298694c6bb950e2c私钥
 
 ```bash
- $ mkdir data
- $ echo e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322 > privkey
- $ echo 111111 > password
- $ sipe account import ./privkey --datadir=kk --password ./password --datadir ./data/
+mkdir data
+echo e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322 > privkey
+echo 111111 > password
+sipe account import ./privkey --password ./password --datadir ./data
 
 ```
 ##### sipe
 
 - 初始化genesis block
 ```bash
- $ sipe init ./poa.json --datadir data/
+sipe init ./poa.json --datadir data/
 ```
 
 - 启动sipe
 ```bash
- $ sipe --datadir ./data --rpc --rpcvhosts "*" --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 --wsport 8546 --wsapi "db,eth,net,web3,personal,debug" --unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) --mine --txpool.globalslots=40960
+sipe --datadir ./data --rpc --rpcvhosts "*" --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 --wsport 8546 --wsapi "db,eth,net,web3,personal,debug" --unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) --mine --txpool.globalslots=40960
 ```
 
 ##### dummytx
