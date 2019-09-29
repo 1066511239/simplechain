@@ -40,7 +40,7 @@
 
 ```bash
 mkdir data
-echo e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322 > privkey
+echo 04c070620a899a470a669fdbe0c6e1b663fd5bc953d9411eb36faa382005b3ad > privkey
 echo 111111 > password
 sipe account import ./privkey --password ./password --datadir ./data
 
