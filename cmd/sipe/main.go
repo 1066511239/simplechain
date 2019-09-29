@@ -20,6 +20,8 @@ package main
 import (
 	"fmt"
 	"math"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	godebug "runtime/debug"
 	"sort"
@@ -338,4 +340,9 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
 	}
+
+	go func() {
+		http.ListenAndServe("127.0.0.1:5678", nil)
+	}()
+
 }
