@@ -100,7 +100,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
 	value := big.NewInt(100000000000000) // in wei (0.0001 eth)
-	gasLimit := uint64(21000 + 1488)     // in units
+	gasLimit := uint64(21000 + 52*68)    // in units
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatalf(errPrefix+" get gas price: %v", err)
@@ -109,10 +109,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 
 	var data [20 + 32]byte
 	copy(data[:], fromAddress.Bytes())
-	if len(os.Args) > 1 {
-		log.Printf("args: %v", os.Args)
-		copy(data[20:], common.Hex2Bytes("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
-	}
+	copy(data[20:], common.FromHex("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
 
 	var (
 		genTimer   = time.NewTicker(dummyInterval)
