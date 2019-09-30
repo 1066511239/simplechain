@@ -58,8 +58,8 @@ sipe --datadir ./data --rpc --rpcvhosts "*"  --rpcaddr 0.0.0.0 --rpcport 8545 --
 ```
 
 ##### dummytx
-
-- `dummytx`: 普通转账交易,默认是4个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
-- `dummytx x`:带有32字节hash值的转账交易,x=1/2/8 是选1或2或8个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
+带有20字节address+32字节hash值的转账交易
+- `dummytx`: 默认是4个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
+- `dummytx x`:x=1/2/8 是选1或2或8个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
 
 如果账户没足够的sipc, 会从0xffd79941b7085805f48ded97298694c6bb950e2c转出10000sipc给该账户
