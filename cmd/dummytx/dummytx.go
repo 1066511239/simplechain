@@ -44,19 +44,17 @@ func main() {
 		"5fc3281bd2894b8418a895897fbc7fe204099ae2f99f930da195d393976d1bbc",
 		"ac817b6310c8ce7a2fd6783a663e4d47f0ab1fb3ae2fba5f85f07bdca5a36e90",
 		"94dbb9085d79578046c4b10a0a7baefead738371ac763ee6ed7d727d348a2509",
-		"f3a131e6001f2d0e51b9e2a7fb83953d911fe242f0ccec0c1e87d3a113527245",
-		"52fa69273ecd3d889326c575215e7dcf95abf7fd1446d794b6e945d4d9ed2775",
-		"aab4e132211a24255992c13ac3c6d09270496e141fe0ad2c79ecf19ca31aa8be",
-		"8041b982caa012337dbfa21183ffb88361f4ffdd65b168d5a6aa8f0949a123b0",
 	}
 
 	var privkeys []string
-	if len(os.Args) > 1 && os.Args[1] == "4" {
-		privkeys = sourceKey[:4]
+	if len(os.Args) > 1 && os.Args[1] == "1" {
+		privkeys = sourceKey[:1]
+	} else if len(os.Args) > 1 && os.Args[1] == "2" {
+		privkeys = sourceKey[:2]
 	} else if len(os.Args) > 1 && os.Args[1] == "8" {
-		privkeys = sourceKey[:8]
-	} else {
 		privkeys = sourceKey
+	} else {
+		privkeys = sourceKey[:4]
 	}
 
 	countChans := make([]chan int, len(privkeys))
@@ -102,16 +100,18 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
 	value := big.NewInt(100000000000000) // in wei (0.0001 eth)
-	gasLimit := uint64(21000)            // in units
+	gasLimit := uint64(21000 + 1488)     // in units
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Fatalf(errPrefix+" get gas price: %v", err)
 	}
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
-	var data []byte
+
+	var data [20 + 32]byte
+	copy(data[:], fromAddress.Bytes())
 	if len(os.Args) > 1 {
 		log.Printf("args: %v", os.Args)
-		data = common.Hex2Bytes("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a")
+		copy(data[20:], common.Hex2Bytes("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
 	}
 
 	var (
@@ -130,11 +130,16 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 			return
 		default:
 			//build,sign,send transaction
-			dummy(nonce, toAddress, value, gasLimit, gasPrice, data, privateKey, client, fromAddress)
+			dummy(nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
 
-			nonce, err = client.PendingNonceAt(context.Background(), fromAddress)
-			if err != nil {
-				log.Fatalf(errPrefix+" get new nonce: %v", err)
+			switch {
+			case nonce%20000 == 0:
+				nonce, err = client.PendingNonceAt(context.Background(), fromAddress)
+				if err != nil {
+					log.Fatalf(errPrefix+" get new nonce: %v", err)
+				}
+			default:
+				nonce++
 			}
 
 			meterCount++
@@ -145,11 +150,12 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 
 func dummy(nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
-	if err != nil {
-		log.Fatalf(errPrefix+"sign tx: %v", err)
-	}
-	err = client.SendTransaction(context.Background(), signedTx)
+	//signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
+	//if err != nil {
+	//	log.Fatalf(errPrefix+"sign tx: %v", err)
+	//}
+
+	err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
 		if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
@@ -206,7 +212,7 @@ TryAgain:
 	}
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		log.Printf(warnPrefix+" send tx: %v", err)
+		log.Printf(warnPrefix+" send tx: %v, sender=%v, receiver=%v", err, fromAddress.String(), toAddress.String())
 		if strings.Contains(err.Error(), "replacement transaction underpriced") {
 			log.Println("waiting 5s and try again")
 			time.Sleep(dummyInterval)

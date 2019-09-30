@@ -54,12 +54,12 @@ sipe init ./poa.json --datadir data/
 
 - 启动sipe
 ```bash
-sipe --datadir ./data --rpc --rpcvhosts "*" --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 --wsport 8546 --wsapi "db,eth,net,web3,personal,debug" --unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) --mine --txpool.globalslots=40960
+sipe --datadir ./data --rpc --rpcvhosts "*"  --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 --wsport 8546 --wsapi "db,eth,net,web3,personal,debug" --unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) --mine --txpool.globalslots=102400 --verbosity 2  --gasprice 0 --miner.recommit 5s
 ```
 
 ##### dummytx
 
-- `dummytx`: 普通转账交易,默认是12个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
-- `dummytx xx`:带有32字节hash值的转账交易,`dummytx 4`和`dummytx 8`是选4或8个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
+- `dummytx`: 普通转账交易,默认是4个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
+- `dummytx x`:带有32字节hash值的转账交易,x=1/2/8 是选1或2或8个账户同时转账给0xffd79941b7085805f48ded97298694c6bb950e2c
 
 如果账户没足够的sipc, 会从0xffd79941b7085805f48ded97298694c6bb950e2c转出10000sipc给该账户
