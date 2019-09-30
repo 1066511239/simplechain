@@ -54,7 +54,11 @@ sipe init ./poa.json --datadir data/
 
 - 启动sipe
 ```bash
-sipe --datadir ./data --rpc --rpcvhosts "*"  --rpcaddr 0.0.0.0 --rpcport 8545 --rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 --wsport 8546 --wsapi "db,eth,net,web3,personal,debug" --unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) --mine --txpool.globalslots=102400 --verbosity 2  --gasprice 0 --miner.recommit 5s
+sipe --datadir ./data --rpc --rpcvhosts "*"  --rpcaddr 0.0.0.0 --rpcport 8545 \
+--rpccorsdomain "*" --rpcapi "db,eth,net,web3,personal,debug" --ws --wsaddr 0.0.0.0 \
+--wsport 8546 --wsapi "db,eth,net,web3,personal,debug" \
+--unlock 0xffd79941b7085805f48ded97298694c6bb950e2c --password <(echo 111111) \
+--mine --txpool.globalslots=102400 --verbosity 2  --gasprice 0 --miner.recommit 5s
 ```
 
 ##### dummytx
