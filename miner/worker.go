@@ -919,22 +919,22 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		w.updateSnapshot()
 		return
 	}
-	// Split the pending transactions into locals and remotes
+	//// Split the pending transactions into locals and remotes
 	localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
-
-	for _, v := range remoteTxs {
-		log.Error("poatest", "acc", v.Len())
-	}
+	//
+	//for _, v := range remoteTxs {
+	//	log.Error("poatest", "acc", v.Len())
+	//}
 
 	for _, account := range w.eth.TxPool().Locals() {
 		if txs := remoteTxs[account]; len(txs) > 0 {
 			delete(remoteTxs, account)
 			localTxs[account] = txs
-			log.Error("poatest", "account", account, "txs", len(txs))
+			//log.Error("poatest", "account", account, "txs", len(txs))
 		}
 	}
 
-	log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs", remoteTxs)
+	//log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs", remoteTxs)
 	if len(localTxs) > 0 {
 		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
 		if w.commitTransactions(txs, w.coinbase, interrupt) {

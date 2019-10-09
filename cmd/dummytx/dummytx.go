@@ -23,6 +23,10 @@ const (
 	dummyInterval = 5 * time.Second
 	warnPrefix    = "\x1b[93mwarn:\x1b[0m"
 	errPrefix     = "\x1b[91merror:\x1b[0m"
+
+	//webSocketUrl = "ws://192.168.4.184:8546"
+	webSocketUrl = "ws://localhost:8546"
+	hash         = "51d11fd469078cd11ced10ad69ff2b5049fa46b4d1affaa91141196988d2dcf4"
 )
 
 func init() {
@@ -30,9 +34,9 @@ func init() {
 }
 
 func main() {
-	client, err := ethclient.Dial("http://localhost:8545")
+	client, err := ethclient.Dial(webSocketUrl)
 	if err != nil {
-		log.Fatalf(errPrefix+" connect http://localhost:8545: %v", err)
+		log.Fatalf(errPrefix+" connect %s: %v", webSocketUrl, err)
 	}
 
 	var sourceKey = []string{
@@ -109,7 +113,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 
 	var data [20 + 32]byte
 	copy(data[:], fromAddress.Bytes())
-	copy(data[20:], common.FromHex("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
+	copy(data[20:], common.FromHex(hash))
 
 	var (
 		genTimer   = time.NewTicker(dummyInterval)
