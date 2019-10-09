@@ -1,17 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/simplechain-org/simplechain/cmd/hashDatabase/db"
-	"github.com/simplechain-org/simplechain/common"
-	"github.com/simplechain-org/simplechain/core/types"
-	"github.com/simplechain-org/simplechain/ethclient"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/simplechain-org/simplechain/cmd/hashDatabase/db"
+	"github.com/simplechain-org/simplechain/common"
+	"github.com/simplechain-org/simplechain/core/types"
+	"github.com/simplechain-org/simplechain/ethclient"
 )
 
 const (
@@ -73,8 +73,16 @@ func subScribeNewHead(client *ethclient.Client, hashDb *db.LDBDatabase, ctx cont
 			if len(txs) > 0 {
 				fmt.Println("count of tx", len(txs))
 				for _, tx := range txs {
+					//todo 辨别hash交易还需要统一
 					data := tx.Data()
-					if bytes.HasPrefix(data, fromAddress.Bytes()) {
+					//if bytes.HasPrefix(data, fromAddress.Bytes()) {
+					//	fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
+					//	if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
+					//		fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
+					//	}
+					//}
+
+					if len(data) == 20+32 {
 						fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
 						if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
 							fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
