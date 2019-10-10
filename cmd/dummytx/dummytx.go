@@ -151,10 +151,6 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 
 func dummy(nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
-	//signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
-	//if err != nil {
-	//	log.Fatalf(errPrefix+"sign tx: %v", err)
-	//}
 
 	err := client.SendTransaction(context.Background(), tx)
 	if err != nil {

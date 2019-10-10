@@ -34,35 +34,36 @@ var (
 	errDecodeIntoNil = errors.New("rlp: pointer given to Decode must not be nil")
 )
 
-
 // DecodeRLP implements rlp.Decoder
-func (tx *Transaction) DecodePool(data []byte) error {
-	fmt.Println("pool: ", data, len(data))
+func (tx *Transaction) DecodeHashTx(data []byte) error {
+	//fmt.Println("pool: ", data, len(data))
 
 	r := bytes.NewReader(data)
 	stream := NewStream(r, uint64(len(data)))
-	a, length, err := stream.readKind()
-	fmt.Println(a, length, err,stream.remaining)
+	//a, length, err := stream.readKind()
+	//fmt.Println(a, length, err,stream.remaining)
+	_, _, err := stream.readKind()
 
-	tx.data.AccountNonce,err = stream.uint(64)
-	if err !=nil{
-		fmt.Println("decode AccountNonce failed: ",err)
+	tx.data.AccountNonce, err = stream.uint(64)
+	if err != nil {
+		fmt.Println("decode AccountNonce failed: ", err)
 	}
 
-	tx.data.Price,err = stream.bigInt()
-	tx.data.GasLimit,err = stream.uint(64)
-	tx.data.Recipient,err = stream.decodeByteArray()
-	tx.data.Amount,err = stream.bigInt()
-	tx.data.Payload,err = stream.decodeByteSlice()
-	tx.data.V,err = stream.bigInt()
-	tx.data.R,err = stream.bigInt()
-	tx.data.S,err = stream.bigInt()
+	tx.data.Price, err = stream.bigInt()
+	tx.data.GasLimit, err = stream.uint(64)
+	tx.data.Recipient, err = stream.decodeByteArray()
+	tx.data.Amount, err = stream.bigInt()
+	tx.data.Payload, err = stream.decodeByteSlice()
+	tx.data.V, err = stream.bigInt()
+	tx.data.R, err = stream.bigInt()
+	tx.data.S, err = stream.bigInt()
 
 	//fmt.Println("tx:   =>>", tx.data)
 	//a,b,err :=stream.readKind()
 	//fmt.Println(a,b,err,stream.remaining)
 	return err
 }
+
 // ByteReader must be implemented by any input reader for a Stream. It
 // is implemented by e.g. bufio.Reader and bytes.Reader.
 type ByteReader interface {
@@ -279,10 +280,10 @@ func (s *Stream) bigInt() (*big.Int, error) {
 	return re.SetBytes(b), nil
 }
 
-func (s *Stream) decodeByteArray() (*common.Address,error) {
+func (s *Stream) decodeByteArray() (*common.Address, error) {
 	kind, size, err := s.readKind()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	switch kind {
 	case Byte:
@@ -301,30 +302,30 @@ func (s *Stream) decodeByteArray() (*common.Address,error) {
 		//if uint64(vlen) > size {
 		//	return &decodeError{msg: "input string too short", typ: val.Type()}
 		//}
-		slice := make([]byte,common.AddressLength)
+		slice := make([]byte, common.AddressLength)
 		if err := s.readFull(slice); err != nil {
-			return nil,err
+			return nil, err
 		}
 		// Reject cases where single byte encoding should have been used.
 		if size == 1 && slice[0] < 128 {
-			return nil,ErrCanonSize
+			return nil, ErrCanonSize
 		}
-		addr :=common.BytesToAddress(slice[:])
-		return &addr,nil
+		addr := common.BytesToAddress(slice[:])
+		return &addr, nil
 	case List:
-		return nil,ErrExpectedString
+		return nil, ErrExpectedString
 	}
 
-	return nil,nil
+	return nil, nil
 }
 
-func (s *Stream)decodeByteSlice() ([]byte,error) {
+func (s *Stream) decodeByteSlice() ([]byte, error) {
 	b, err := s.Bytes()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	return b,nil
+	return b, nil
 }
 
 // Bytes reads an RLP string and returns its contents as a byte slice.

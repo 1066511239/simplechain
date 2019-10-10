@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	websocketUrl = "ws://127.0.0.1:8546"
+	//websocketUrl = "ws://192.168.4.192:8546"
+	websocketUrl = "ws://localhost:8546"
 )
 
 var fromAddress = common.HexToAddress("0xe673B8351E8B039F9e8d6Aca575ff36C1782fb17")
@@ -72,23 +73,23 @@ func subScribeNewHead(client *ethclient.Client, hashDb *db.LDBDatabase, ctx cont
 			txs := block.Transactions()
 			if len(txs) > 0 {
 				fmt.Println("count of tx", len(txs))
-				for _, tx := range txs {
-					//todo 辨别hash交易还需要统一
-					data := tx.Data()
-					//if bytes.HasPrefix(data, fromAddress.Bytes()) {
-					//	fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
-					//	if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
-					//		fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
-					//	}
-					//}
-
-					if len(data) == 20+32 {
-						fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
-						if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
-							fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
-						}
-					}
-				}
+				//for _, tx := range txs {
+				//	//todo 辨别hash交易还需要统一
+				//	data := tx.Data()
+				//	//if bytes.HasPrefix(data, fromAddress.Bytes()) {
+				//	//	fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
+				//	//	if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
+				//	//		fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
+				//	//	}
+				//	//}
+				//
+				//	if len(data) == 20+32 {
+				//		//fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
+				//		if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
+				//			fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
+				//		}
+				//	}
+				//}
 			}
 
 		}
