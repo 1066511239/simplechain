@@ -934,7 +934,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		}
 	}
 
-	log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs", remoteTxs)
+	//log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs count", remoteTxs)
 	if len(localTxs) > 0 {
 		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
 		if w.commitTransactions(txs, w.coinbase, interrupt) {
