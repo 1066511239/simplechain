@@ -17,23 +17,20 @@
 package miner
 
 import (
-	"bytes"
 	"errors"
-	"math/big"
-	"sync"
-	"sync/atomic"
-	"time"
-
-	mapset "github.com/deckarep/golang-set"
+	"fmt"
+	"github.com/deckarep/golang-set"
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/consensus"
-	"github.com/simplechain-org/simplechain/consensus/misc"
 	"github.com/simplechain-org/simplechain/core"
 	"github.com/simplechain-org/simplechain/core/state"
 	"github.com/simplechain-org/simplechain/core/types"
 	"github.com/simplechain-org/simplechain/event"
 	"github.com/simplechain-org/simplechain/log"
 	"github.com/simplechain-org/simplechain/params"
+	"sync"
+	"sync/atomic"
+	"time"
 )
 
 const (
@@ -621,14 +618,14 @@ func (w *worker) makeCurrent(parent *types.Block, header *types.Header) error {
 		header:    header,
 	}
 
-	// when 08 is processed ancestors contain 07 (quick block)
-	for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
-		for _, uncle := range ancestor.Uncles() {
-			env.family.Add(uncle.Hash())
-		}
-		env.family.Add(ancestor.Hash())
-		env.ancestors.Add(ancestor.Hash())
-	}
+	//// when 08 is processed ancestors contain 07 (quick block)
+	//for _, ancestor := range w.chain.GetBlocksFromHash(parent.Hash(), 7) {
+	//	for _, uncle := range ancestor.Uncles() {
+	//		env.family.Add(uncle.Hash())
+	//	}
+	//	env.family.Add(ancestor.Hash())
+	//	env.ancestors.Add(ancestor.Hash())
+	//}
 
 	// Keep track of transactions which return errors so they can be removed
 	env.tcount = 0
@@ -743,6 +740,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		// Retrieve the next transaction and abort if all done
 		tx := txs.Peek()
 		if tx == nil {
+			fmt.Println("tx peek ==nil")
 			break
 		}
 		// Error may be ignored here. The error has already been checked
@@ -764,6 +762,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		logs, err := w.commitTransaction(tx, coinbase)
 		switch err {
 		case core.ErrGasLimitReached:
+			fmt.Println("ErrGasLimitReached...")
 			// Pop the current out-of-gas transaction without shifting in the next from the account
 			log.Trace("Gas limit exceeded for current block", "sender", from)
 			txs.Pop()
@@ -854,18 +853,18 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		return
 	}
 	// If we are care about TheDAO hard-fork check whether to override the extra-data or not
-	if daoBlock := w.config.DAOForkBlock; daoBlock != nil {
-		// Check whether the block is among the fork extra-override range
-		limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
-		if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
-			// Depending whether we support or oppose the fork, override differently
-			if w.config.DAOForkSupport {
-				header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
-			} else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
-				header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
-			}
-		}
-	}
+	//if daoBlock := w.config.DAOForkBlock; daoBlock != nil {
+	//	// Check whether the block is among the fork extra-override range
+	//	limit := new(big.Int).Add(daoBlock, params.DAOForkExtraRange)
+	//	if header.Number.Cmp(daoBlock) >= 0 && header.Number.Cmp(limit) < 0 {
+	//		// Depending whether we support or oppose the fork, override differently
+	//		if w.config.DAOForkSupport {
+	//			header.Extra = common.CopyBytes(params.DAOForkBlockExtra)
+	//		} else if bytes.Equal(header.Extra, params.DAOForkBlockExtra) {
+	//			header.Extra = []byte{} // If miner opposes, don't let it use the reserved extra-data
+	//		}
+	//	}
+	//}
 	// Could potentially happen if starting to mine in an odd state.
 	err := w.makeCurrent(parent, header)
 	if err != nil {
@@ -873,34 +872,34 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		return
 	}
 	// Create the current work task and check any fork transitions needed
-	env := w.current
-	if w.config.DAOForkSupport && w.config.DAOForkBlock != nil && w.config.DAOForkBlock.Cmp(header.Number) == 0 {
-		misc.ApplyDAOHardFork(env.state)
-	}
+	//env := w.current
+	//if w.config.DAOForkSupport && w.config.DAOForkBlock != nil && w.config.DAOForkBlock.Cmp(header.Number) == 0 {
+	//	misc.ApplyDAOHardFork(env.state)
+	//}
 	// Accumulate the uncles for the current block
 	uncles := make([]*types.Header, 0, 2)
-	commitUncles := func(blocks map[common.Hash]*types.Block) {
-		// Clean up stale uncle blocks first
-		for hash, uncle := range blocks {
-			if uncle.NumberU64()+staleThreshold <= header.Number.Uint64() {
-				delete(blocks, hash)
-			}
-		}
-		for hash, uncle := range blocks {
-			if len(uncles) == 2 {
-				break
-			}
-			if err := w.commitUncle(env, uncle.Header()); err != nil {
-				log.Trace("Possible uncle rejected", "hash", hash, "reason", err)
-			} else {
-				log.Debug("Committing new uncle to block", "hash", hash)
-				uncles = append(uncles, uncle.Header())
-			}
-		}
-	}
-	// Prefer to locally generated uncle
-	commitUncles(w.localUncles)
-	commitUncles(w.remoteUncles)
+	//commitUncles := func(blocks map[common.Hash]*types.Block) {
+	//	// Clean up stale uncle blocks first
+	//	for hash, uncle := range blocks {
+	//		if uncle.NumberU64()+staleThreshold <= header.Number.Uint64() {
+	//			delete(blocks, hash)
+	//		}
+	//	}
+	//	for hash, uncle := range blocks {
+	//		if len(uncles) == 2 {
+	//			break
+	//		}
+	//		if err := w.commitUncle(env, uncle.Header()); err != nil {
+	//			log.Trace("Possible uncle rejected", "hash", hash, "reason", err)
+	//		} else {
+	//			log.Debug("Committing new uncle to block", "hash", hash)
+	//			uncles = append(uncles, uncle.Header())
+	//		}
+	//	}
+	//}
+	//// Prefer to locally generated uncle
+	//commitUncles(w.localUncles)
+	//commitUncles(w.remoteUncles)
 
 	if !noempty {
 		// Create an empty block based on temporary copied state for sealing in advance without waiting block
@@ -919,22 +918,16 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 		w.updateSnapshot()
 		return
 	}
-	//// Split the pending transactions into locals and remotes
+	// Split the pending transactions into locals and remotes
 	localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
-	//
-	//for _, v := range remoteTxs {
-	//	log.Error("poatest", "acc", v.Len())
-	//}
 
 	for _, account := range w.eth.TxPool().Locals() {
 		if txs := remoteTxs[account]; len(txs) > 0 {
 			delete(remoteTxs, account)
 			localTxs[account] = txs
-			//log.Error("poatest", "account", account, "txs", len(txs))
 		}
 	}
 
-	//log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs", remoteTxs)
 	if len(localTxs) > 0 {
 		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
 		if w.commitTransactions(txs, w.coinbase, interrupt) {
@@ -972,15 +965,8 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 		case w.taskCh <- &task{receipts: receipts, state: s, block: block, createdAt: time.Now()}:
 			w.unconfirmed.Shift(block.NumberU64() - 1)
 
-			feesWei := new(big.Int)
-			for i, tx := range block.Transactions() {
-				feesWei.Add(feesWei, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice()))
-			}
-			feesEth := new(big.Float).Quo(new(big.Float).SetInt(feesWei), new(big.Float).SetInt(big.NewInt(params.Ether)))
-
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
-				"uncles", len(uncles), "txs", w.current.tcount, "gas", block.GasUsed(), "fees", feesEth,
-				"elapsed", common.PrettyDuration(time.Since(start)), "miner", block.Coinbase(), "difficulty", block.Difficulty())
+				"txs", w.current.tcount, "elapsed", common.PrettyDuration(time.Since(start)), "miner", block.Coinbase(), "difficulty", block.Difficulty())
 
 		case <-w.exitCh:
 			log.Info("Worker has exited")

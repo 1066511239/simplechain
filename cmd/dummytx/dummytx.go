@@ -103,12 +103,13 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	if err != nil {
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
-	value := big.NewInt(100000000000000) // in wei (0.0001 eth)
-	gasLimit := uint64(21000 + 52*68)    // in units
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Fatalf(errPrefix+" get gas price: %v", err)
-	}
+	//value := big.NewInt(100000000000000) // in wei (0.0001 eth)
+	gasLimit := uint64(21000 + 52*68) // in units
+	//gasPrice, err := client.SuggestGasPrice(context.Background())
+	//if err != nil {
+	//	log.Fatalf(errPrefix+" get gas price: %v", err)
+	//}
+
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
 
 	var data [20 + 32]byte
@@ -131,7 +132,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 			return
 		default:
 			//build,sign,send transaction
-			dummy(nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
+			dummy(nonce, toAddress, gasLimit, data[:], client, fromAddress)
 
 			switch {
 			case nonce%20000 == 0:
@@ -149,8 +150,8 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 }
 
-func dummy(nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
+func dummy(nonce uint64, toAddress common.Address, gasLimit uint64, data []byte, client *ethclient.Client, fromAddress common.Address) {
+	tx := types.NewTransaction(nonce, toAddress, nil, gasLimit, nil, data)
 
 	err := client.SendTransaction(context.Background(), tx)
 	if err != nil {
