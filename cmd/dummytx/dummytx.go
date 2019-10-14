@@ -57,17 +57,13 @@ func main() {
 		privkeys = sourceKey[:4]
 	}
 
-	countChans := make([]chan int, len(privkeys))
-
 	ctx, cancel := context.WithCancel(context.Background())
 
 	for i, privKey := range privkeys {
-		newCountChan := make(chan int)
-		countChans[i] = newCountChan
-		go dummyTx(ctx, client, i, privKey, newCountChan)
+		go dummyTx(ctx, client, i, privKey)
 	}
 
-	go calcTotalCount(ctx, countChans)
+	go calcTotalCount(ctx, client)
 
 	go func() {
 		http.ListenAndServe("127.0.0.1:6789", nil)
@@ -83,7 +79,7 @@ func main() {
 	log.Println("dummy transaction exit")
 }
 
-func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey string, count chan<- int) {
+func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey string) {
 	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatalf(errPrefix+" parse private key: %v", err)
@@ -112,18 +108,21 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	copy(data[20:], common.FromHex("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
 
 	var (
-		genTimer   = time.NewTicker(dummyInterval)
+		genTimer   = time.NewTimer(0)
 		meterCount = 0
 	)
+
+	<-genTimer.C
+	genTimer.Reset(dummyInterval)
 
 	for {
 		select {
 		case <-genTimer.C:
-			count <- meterCount
+			log.Printf("%v send %v txs in 5s", index, meterCount)
 			meterCount = 0
+			genTimer.Reset(dummyInterval)
 		case <-ctx.Done():
 			log.Printf("dummyTx:%v return", index)
-			close(count)
 			return
 		default:
 			//build,sign,send transaction
@@ -163,23 +162,24 @@ func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *b
 	}
 }
 
-func calcTotalCount(ctx context.Context, countChans []chan int) {
-	totalCount := 0
+func calcTotalCount(ctx context.Context, client *ethclient.Client) {
+	timer := time.NewTimer(0)
+	<-timer.C
+	timer.Reset(dummyInterval)
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("calcTotalCount return")
 			return
-		default:
-			var counts []int
-			for i := range countChans {
-				tmpInt := <-countChans[i]
-				counts = append(counts, tmpInt)
-				totalCount += tmpInt
-				println(i)
+		case <-timer.C:
+			txCount, err := client.LatestTransactionCount(ctx)
+			if err != nil {
+				log.Printf(warnPrefix, "get latest txCount: %v", err)
 			}
-			log.Printf("average per second dummy txs: %v #%v", totalCount/5, counts)
-			totalCount = 0
+			log.Printf("average per second final txs persond: %v", txCount/5)
+			timer.Reset(dummyInterval)
+		default:
+
 		}
 	}
 }
