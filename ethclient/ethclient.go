@@ -441,6 +441,13 @@ func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 	return uint(num), err
 }
 
+// LatestTransactionCount returns the total number of transactions in the latest state.
+func (ec *Client) LatestTransactionCount(ctx context.Context) (uint, error) {
+	var num hexutil.Uint
+	err := ec.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByNumber", "latest")
+	return uint(num), err
+}
+
 // TODO: SubscribePendingTransactions (needs server side)
 
 // Contract Calling
