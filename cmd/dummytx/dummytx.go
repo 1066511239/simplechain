@@ -30,9 +30,9 @@ func init() {
 }
 
 func main() {
-	client, err := ethclient.Dial("http://localhost:8545")
+	client, err := ethclient.Dial("ws://localhost:8546")
 	if err != nil {
-		log.Fatalf(errPrefix+" connect http://localhost:8545: %v", err)
+		log.Fatalf(errPrefix+" connect ws://localhost:8546: %v", err)
 	}
 
 	var sourceKey = []string{
@@ -95,13 +95,13 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	nonce, err := client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
 	value := big.NewInt(100000000000000) // in wei (0.0001 eth)
 	gasLimit := uint64(21000 + 52*68)    // in units
-	gasPrice, err := client.SuggestGasPrice(context.Background())
+	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		log.Fatalf(errPrefix+" get gas price: %v", err)
 	}
@@ -119,7 +119,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	for {
 		select {
 		case <-genTimer.C:
-			count <- meterCount / 5
+			count <- meterCount
 			meterCount = 0
 		case <-ctx.Done():
 			log.Printf("dummyTx:%v return", index)
@@ -127,11 +127,11 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 			return
 		default:
 			//build,sign,send transaction
-			dummy(nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
+			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
 
 			switch {
 			case nonce%20000 == 0:
-				nonce, err = client.PendingNonceAt(context.Background(), fromAddress)
+				nonce, err = client.PendingNonceAt(ctx, fromAddress)
 				if err != nil {
 					log.Fatalf(errPrefix+" get new nonce: %v", err)
 				}
@@ -145,18 +145,18 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 }
 
-func dummy(nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
+func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
 	//signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
 	//if err != nil {
 	//	log.Fatalf(errPrefix+"sign tx: %v", err)
 	//}
 
-	err := client.SendTransaction(context.Background(), tx)
+	err := client.SendTransaction(ctx, tx)
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
 		if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
-			claimFunds(client, fromAddress)
+			claimFunds(ctx, client, fromAddress)
 			//waiting transfer tx
 			time.Sleep(dummyInterval)
 		}
@@ -171,16 +171,20 @@ func calcTotalCount(ctx context.Context, countChans []chan int) {
 			log.Println("calcTotalCount return")
 			return
 		default:
+			var counts []int
 			for i := range countChans {
-				totalCount += <-countChans[i]
+				tmpInt := <-countChans[i]
+				counts = append(counts, tmpInt)
+				totalCount += tmpInt
+				println(i)
 			}
-			log.Printf("average per second dummy txs: %v", totalCount)
+			log.Printf("average per second dummy txs: %v #%v", totalCount/5, counts)
 			totalCount = 0
 		}
 	}
 }
 
-func claimFunds(client *ethclient.Client, toAddress common.Address) {
+func claimFunds(ctx context.Context, client *ethclient.Client, toAddress common.Address) {
 	//0xffd79941b7085805f48ded97298694c6bb950e2c
 	privateKey, err := crypto.HexToECDSA("04c070620a899a470a669fdbe0c6e1b663fd5bc953d9411eb36faa382005b3ad")
 	if err != nil {
@@ -190,30 +194,37 @@ func claimFunds(client *ethclient.Client, toAddress common.Address) {
 
 	value := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(10000)) // in wei (10000 eth)
 	gasLimit := uint64(21000)                                                     // in units
-	gasPrice, err := client.SuggestGasPrice(context.Background())
+	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		log.Fatalf(errPrefix+" get gas price: %v", err)
 	}
 
-TryAgain:
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		log.Fatalf(errPrefix+" get new nonce: %v", err)
-	}
+	doClaim(ctx, client, fromAddress, toAddress, value, gasLimit, gasPrice, privateKey)
+}
 
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+func doClaim(ctx context.Context, client *ethclient.Client, fromAddress common.Address, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, privateKey *ecdsa.PrivateKey) {
+	for {
+		nonce, err := client.PendingNonceAt(ctx, fromAddress)
+		if err != nil {
+			log.Fatalf(errPrefix+" get new nonce: %v", err)
+		}
+		tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+		signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
+		if err != nil {
+			log.Fatalf(errPrefix+" sign tx: %v", err)
+		}
 
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
-	if err != nil {
-		log.Fatalf(errPrefix+" sign tx: %v", err)
-	}
-	err = client.SendTransaction(context.Background(), signedTx)
-	if err != nil {
-		log.Printf(warnPrefix+" send tx: %v, sender=%v, receiver=%v", err, fromAddress.String(), toAddress.String())
-		if strings.Contains(err.Error(), "replacement transaction underpriced") {
+		err = client.SendTransaction(ctx, signedTx)
+		switch {
+		case err != nil:
+			log.Printf(warnPrefix+" send tx: %v, sender=%v, receiver=%v", err, fromAddress.String(), toAddress.String())
+			if !strings.Contains(err.Error(), "replacement transaction underpriced") {
+				return
+			}
 			log.Println("waiting 5s and try again")
 			time.Sleep(dummyInterval)
-			goto TryAgain
+		default:
+			return
 		}
 	}
 }
