@@ -17,6 +17,8 @@
 package core
 
 import (
+	"sync"
+
 	"github.com/simplechain-org/simplechain/common"
 	"github.com/simplechain-org/simplechain/consensus"
 	"github.com/simplechain-org/simplechain/consensus/misc"
@@ -26,6 +28,12 @@ import (
 	"github.com/simplechain-org/simplechain/crypto"
 	"github.com/simplechain-org/simplechain/params"
 )
+
+var evmPool = sync.Pool{
+	New: func() interface{} {
+		return new(vm.EVM)
+	},
+}
 
 // StateProcessor is a basic Processor, which takes care of transitioning
 // state from one point to another.
@@ -86,7 +94,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 // for the transaction, gas used and an error if the transaction failed,
 // indicating the block was invalid.
 func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *common.Address, gp *GasPool, statedb *state.StateDB, header *types.Header, tx *types.Transaction, usedGas *uint64, cfg vm.Config) (*types.Receipt, uint64, error) {
-	msg, err := tx.AsMessage(types.MakeSigner(config, header.Number))
+	msg, err := tx.AsMessageFromPool(types.MakeSigner(config, header.Number))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,7 +102,12 @@ func ApplyTransaction(config *params.ChainConfig, bc ChainContext, author *commo
 	context := NewEVMContext(msg, header, bc, author)
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
-	vmenv := vm.NewEVM(context, statedb, config, cfg)
+	//vmenv := vm.NewEVM(context, statedb, config, cfg)
+	vmenv := evmPool.Get().(*vm.EVM)
+	defer evmPool.Put(vmenv)
+
+	vm.PrepareEVM(context, vmenv, statedb, config, cfg)
+
 	// Apply the transaction to the current state (included in the env)
 	_, gas, failed, err := ApplyMessage(vmenv, msg, gp)
 	if err != nil {
