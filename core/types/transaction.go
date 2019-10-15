@@ -21,6 +21,7 @@ import (
 	"errors"
 	"io"
 	"math/big"
+	"sync"
 	"sync/atomic"
 
 	"github.com/simplechain-org/simplechain/common"
@@ -33,6 +34,12 @@ import (
 
 var (
 	ErrInvalidSig = errors.New("invalid transaction v, r, s values")
+
+	messagePool = sync.Pool{
+		New: func() interface{} {
+			return new(Message)
+		},
+	}
 )
 
 type Transaction struct {
@@ -210,6 +217,24 @@ func (tx *Transaction) Size() common.StorageSize {
 	rlp.Encode(&c, &tx.data)
 	tx.size.Store(common.StorageSize(c))
 	return common.StorageSize(c)
+}
+
+// AsMessageFromPool as the AsMessage
+func (tx *Transaction) AsMessageFromPool(s Signer) (Message, error) {
+	msg := messagePool.Get().(*Message)
+	defer messagePool.Put(msg)
+
+	msg.nonce = tx.data.AccountNonce
+	msg.gasLimit = tx.data.GasLimit
+	msg.gasPrice = new(big.Int).Set(tx.data.Price)
+	msg.to = tx.data.Recipient
+	msg.amount = tx.data.Amount
+	msg.data = tx.data.Payload
+	msg.checkNonce = true
+
+	var err error
+	msg.from, err = Sender(s, tx)
+	return *msg, err
 }
 
 // AsMessage returns the transaction as a core.Message.
