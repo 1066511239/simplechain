@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -15,14 +16,17 @@ import (
 )
 
 const (
-	//websocketUrl = "ws://192.168.4.192:8546"
-	websocketUrl = "ws://localhost:8546"
+//websocketUrl = "ws://192.168.4.192:8546"
+//websocketUrl = "ws://localhost:8546"
 )
 
 var fromAddress = common.HexToAddress("0xe673B8351E8B039F9e8d6Aca575ff36C1782fb17")
 
 func main() {
-	client, err := ethclient.Dial(websocketUrl)
+	url := flag.String("url", "ws://localhost:8546", "websocket url")
+	flag.Parse()
+	fmt.Println(*url)
+	client, err := ethclient.Dial(*url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,7 +38,7 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	subScribeNewHead(client, hashDb, ctx)
+	go subScribeNewHead(client, hashDb, ctx)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -63,35 +67,13 @@ func subScribeNewHead(client *ethclient.Client, hashDb *db.LDBDatabase, ctx cont
 			fmt.Printf("subscribe newHead error:%s\n", err)
 			return
 		case header := <-headerCh:
-			fmt.Printf("New Block,number: %s,hash: %s\n", header.Number.String(), header.Hash().String())
+			fmt.Printf("New Block,number: %s,hash: %s,", header.Number.String(), header.Hash().String())
 
-			block, err := client.BlockByNumber(ctx, header.Number)
+			txsCount, err := client.TransactionCount(ctx, header.Hash())
 			if err != nil {
-				fmt.Printf("get block %s failed: %s\n", header.Number.String(), err)
-				break
+				fmt.Println("GetTransactionCount error: ", err)
 			}
-			txs := block.Transactions()
-			if len(txs) > 0 {
-				fmt.Println("count of tx", len(txs))
-				//for _, tx := range txs {
-				//	//todo 辨别hash交易还需要统一
-				//	data := tx.Data()
-				//	//if bytes.HasPrefix(data, fromAddress.Bytes()) {
-				//	//	fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
-				//	//	if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
-				//	//		fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
-				//	//	}
-				//	//}
-				//
-				//	if len(data) == 20+32 {
-				//		//fmt.Printf("id:%s, hash：%s\n", tx.Hash().String(), common.BytesToHash(data[20:]).String())
-				//		if err := hashDb.InsertHash(common.BytesToHash(data[2:]), tx.Hash()); err != nil {
-				//			fmt.Printf("InsertDb failed: id:%s,hash:%s\n", tx.Hash().String(), common.BytesToHash(data[2:]).String())
-				//		}
-				//	}
-				//}
-			}
-
+			fmt.Printf(" txs:%d\n", txsCount)
 		}
 	}
 

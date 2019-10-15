@@ -352,7 +352,7 @@ func decodeSliceElems(s *Stream, val reflect.Value, elemdec decoder) error {
 	for ; ; i++ {
 		// grow slice if necessary
 		if i >= val.Cap() {
-			newcap := val.Cap() + val.Cap()/2
+			newcap := val.Cap() * 16
 			if newcap < 4 {
 				newcap = 4
 			}

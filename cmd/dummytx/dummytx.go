@@ -23,10 +23,6 @@ const (
 	dummyInterval = 5 * time.Second
 	warnPrefix    = "\x1b[93mwarn:\x1b[0m"
 	errPrefix     = "\x1b[91merror:\x1b[0m"
-
-	//webSocketUrl = "ws://192.168.4.184:8546"
-	webSocketUrl = "ws://localhost:8546"
-	hash         = "51d11fd469078cd11ced10ad69ff2b5049fa46b4d1affaa91141196988d2dcf4"
 )
 
 func init() {
@@ -34,9 +30,9 @@ func init() {
 }
 
 func main() {
-	client, err := ethclient.Dial(webSocketUrl)
+	client, err := ethclient.Dial("ws://localhost:8546")
 	if err != nil {
-		log.Fatalf(errPrefix+" connect %s: %v", webSocketUrl, err)
+		log.Fatalf(errPrefix+" connect ws://localhost:8546: %v", err)
 	}
 
 	var sourceKey = []string{
@@ -50,28 +46,24 @@ func main() {
 		"94dbb9085d79578046c4b10a0a7baefead738371ac763ee6ed7d727d348a2509",
 	}
 
-	var privkeys []string
+	var priKeys []string
 	if len(os.Args) > 1 && os.Args[1] == "1" {
-		privkeys = sourceKey[:1]
+		priKeys = sourceKey[:1]
 	} else if len(os.Args) > 1 && os.Args[1] == "2" {
-		privkeys = sourceKey[:2]
+		priKeys = sourceKey[:2]
 	} else if len(os.Args) > 1 && os.Args[1] == "8" {
-		privkeys = sourceKey
+		priKeys = sourceKey
 	} else {
-		privkeys = sourceKey[:4]
+		priKeys = sourceKey[:4]
 	}
-
-	countChans := make([]chan int, len(privkeys))
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	for i, privKey := range privkeys {
-		newCountChan := make(chan int)
-		countChans[i] = newCountChan
-		go dummyTx(ctx, client, i, privKey, newCountChan)
+	for i, priKey := range priKeys {
+		go dummyTx(ctx, client, i, priKey)
 	}
 
-	go calcTotalCount(ctx, countChans)
+	//go calcTotalCount(ctx, client)
 
 	go func() {
 		http.ListenAndServe("127.0.0.1:6789", nil)
@@ -87,7 +79,7 @@ func main() {
 	log.Println("dummy transaction exit")
 }
 
-func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey string, count chan<- int) {
+func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey string) {
 	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatalf(errPrefix+" parse private key: %v", err)
@@ -99,44 +91,46 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	nonce, err := client.PendingNonceAt(ctx, fromAddress)
 	if err != nil {
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
-	//value := big.NewInt(100000000000000) // in wei (0.0001 eth)
+	value := big.NewInt(0)            // in wei (0.0001 eth)
 	gasLimit := uint64(21000 + 52*68) // in units
-	//gasPrice, err := client.SuggestGasPrice(context.Background())
-	//if err != nil {
-	//	log.Fatalf(errPrefix+" get gas price: %v", err)
-	//}
-
+	gasPrice, err := client.SuggestGasPrice(ctx)
+	if err != nil {
+		log.Fatalf(errPrefix+" get gas price: %v", err)
+	}
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
 
 	var data [20 + 32]byte
 	copy(data[:], fromAddress.Bytes())
-	copy(data[20:], common.FromHex(hash))
+	copy(data[20:], common.FromHex("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
 
 	var (
-		genTimer   = time.NewTicker(dummyInterval)
+		genTimer   = time.NewTimer(0)
 		meterCount = 0
 	)
+
+	<-genTimer.C
+	genTimer.Reset(dummyInterval)
 
 	for {
 		select {
 		case <-genTimer.C:
-			count <- meterCount / 5
+			log.Printf("%v send %v txs in 5s", index, meterCount)
 			meterCount = 0
+			genTimer.Reset(dummyInterval)
 		case <-ctx.Done():
 			log.Printf("dummyTx:%v return", index)
-			close(count)
 			return
 		default:
 			//build,sign,send transaction
-			dummy(nonce, toAddress, gasLimit, data[:], client, fromAddress)
+			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], client, fromAddress)
 
 			switch {
 			case nonce%20000 == 0:
-				nonce, err = client.PendingNonceAt(context.Background(), fromAddress)
+				nonce, err = client.PendingNonceAt(ctx, fromAddress)
 				if err != nil {
 					log.Fatalf(errPrefix+" get new nonce: %v", err)
 				}
@@ -150,71 +144,80 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 }
 
-func dummy(nonce uint64, toAddress common.Address, gasLimit uint64, data []byte, client *ethclient.Client, fromAddress common.Address) {
-	tx := types.NewTransaction(nonce, toAddress, nil, gasLimit, nil, data)
-
-	err := client.SendTransaction(context.Background(), tx)
+func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, client *ethclient.Client, fromAddress common.Address) {
+	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
+	err := client.SendTransaction(ctx, tx)
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
-		if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
-			claimFunds(client, fromAddress)
-			//waiting transfer tx
-			time.Sleep(dummyInterval)
+		if strings.Contains(err.Error(), "known transaction") {
+			log.Printf("tx is %v:", tx)
 		}
 	}
 }
 
-func calcTotalCount(ctx context.Context, countChans []chan int) {
-	totalCount := 0
+//func calcTotalCount(ctx context.Context, client *ethclient.Client) {
+//	timer := time.NewTimer(0)
+//	<-timer.C
+//	timer.Reset(dummyInterval)
+//	for {
+//		select {
+//		case <-ctx.Done():
+//			log.Println("calcTotalCount return")
+//			return
+//		case <-timer.C:
+//			txCount, err := client.LatestTransactionCount(ctx)
+//			if err != nil {
+//				log.Printf(warnPrefix, "get latest txCount: %v", err)
+//			}
+//			log.Printf("average per second final txs persond: %v", txCount/5)
+//			timer.Reset(dummyInterval)
+//		default:
+//
+//		}
+//	}
+//}
+
+//func claimFunds(ctx context.Context, client *ethclient.Client, toAddress common.Address) {
+//	//0xffd79941b7085805f48ded97298694c6bb950e2c
+//	privateKey, err := crypto.HexToECDSA("04c070620a899a470a669fdbe0c6e1b663fd5bc953d9411eb36faa382005b3ad")
+//	if err != nil {
+//		log.Fatalf(errPrefix+" parse private key: %v", err)
+//	}
+//	fromAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
+//
+//	value := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(10000)) // in wei (10000 eth)
+//	gasLimit := uint64(21000)                                                     // in units
+//	gasPrice, err := client.SuggestGasPrice(ctx)
+//	if err != nil {
+//		log.Fatalf(errPrefix+" get gas price: %v", err)
+//	}
+//
+//	doClaim(ctx, client, fromAddress, toAddress, value, gasLimit, gasPrice, privateKey)
+//}
+
+func doClaim(ctx context.Context, client *ethclient.Client, fromAddress common.Address, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, privateKey *ecdsa.PrivateKey) {
 	for {
-		select {
-		case <-ctx.Done():
-			log.Println("calcTotalCount return")
-			return
-		default:
-			for i := range countChans {
-				totalCount += <-countChans[i]
-			}
-			log.Printf("average per second dummy txs: %v", totalCount)
-			totalCount = 0
+		nonce, err := client.PendingNonceAt(ctx, fromAddress)
+		if err != nil {
+			log.Fatalf(errPrefix+" get new nonce: %v", err)
 		}
-	}
-}
+		tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+		signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
+		if err != nil {
+			log.Fatalf(errPrefix+" sign tx: %v", err)
+		}
 
-func claimFunds(client *ethclient.Client, toAddress common.Address) {
-	//0xffd79941b7085805f48ded97298694c6bb950e2c
-	privateKey, err := crypto.HexToECDSA("04c070620a899a470a669fdbe0c6e1b663fd5bc953d9411eb36faa382005b3ad")
-	if err != nil {
-		log.Fatalf(errPrefix+" parse private key: %v", err)
-	}
-	fromAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
-
-	value := new(big.Int).Mul(big.NewInt(1000000000000000000), big.NewInt(10000)) // in wei (10000 eth)
-	gasLimit := uint64(21000)                                                     // in units
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		log.Fatalf(errPrefix+" get gas price: %v", err)
-	}
-
-TryAgain:
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		log.Fatalf(errPrefix+" get new nonce: %v", err)
-	}
-
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
-
-	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
-	if err != nil {
-		log.Fatalf(errPrefix+" sign tx: %v", err)
-	}
-	err = client.SendTransaction(context.Background(), signedTx)
-	if err != nil {
-		log.Printf(warnPrefix+" send tx: %v, sender=%v, receiver=%v", err, fromAddress.String(), toAddress.String())
-		if strings.Contains(err.Error(), "replacement transaction underpriced") {
+		err = client.SendTransaction(ctx, signedTx)
+		switch {
+		case err != nil:
+			log.Printf(warnPrefix+" send tx: %v, sender=%v, receiver=%v", err, fromAddress.String(), toAddress.String())
+			if !strings.Contains(err.Error(), "replacement transaction underpriced") {
+				return
+			}
 			log.Println("waiting 5s and try again")
 			time.Sleep(dummyInterval)
-			goto TryAgain
+		default:
+			return
 		}
 	}
 }

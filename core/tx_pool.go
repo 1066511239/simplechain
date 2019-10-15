@@ -230,6 +230,8 @@ type TxPool struct {
 	wg sync.WaitGroup // for shutdown sync
 
 	homestead bool
+
+	promoteds []*types.Transaction
 }
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
@@ -997,8 +999,13 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) {
 	}
 	// Notify subsystem for new promoted transactions.
 	if len(promoted) > 0 {
-		go pool.txFeed.Send(NewTxsEvent{promoted})
+		pool.promoteds = append(pool.promoteds, promoted...)
+		if len(pool.promoteds) > 100 {
+			go pool.txFeed.Send(NewTxsEvent{pool.promoteds})
+			pool.promoteds = make([]*types.Transaction, 0)
+		}
 	}
+
 	// If the pending limit is overflown, start equalizing allowances
 	pending := uint64(0)
 	for _, list := range pool.pending {
