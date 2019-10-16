@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"log"
 	"math/big"
+	"math/rand"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -95,22 +96,24 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	if err != nil {
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
-	value := big.NewInt(100000000000000) // in wei (0.0001 eth)
-	gasLimit := uint64(21000 + 52*68)    // in units
+	value := big.NewInt(0)
+	gasLimit := uint64(21000 + (20+64)*68) // in units
 	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		log.Fatalf(errPrefix+" get gas price: %v", err)
 	}
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
 
-	var data [20 + 32]byte
-	copy(data[:], fromAddress.Bytes())
-	copy(data[20:], common.FromHex("0xd962b109b0bfdef7d6568cff8e6fe24d55e80d5749f6d80ddea66c0647dbb03a"))
-
 	var (
+		data       [20 + 64]byte
 		genTimer   = time.NewTimer(0)
 		meterCount = 0
 	)
+
+	copy(data[:], fromAddress.Bytes())
+
+	//read random 64 bytes
+	_, _ = rand.Read(data[20:])
 
 	<-genTimer.C
 	genTimer.Reset(dummyInterval)
@@ -126,6 +129,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 			return
 		default:
 			//build,sign,send transaction
+			_, _ = rand.Read(data[20:])
 			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
 
 			switch {
@@ -165,7 +169,7 @@ func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *b
 func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 	timer := time.NewTimer(0)
 	<-timer.C
-	timer.Reset(dummyInterval)
+	timer.Reset(3 * time.Second)
 	for {
 		select {
 		case <-ctx.Done():
@@ -174,9 +178,9 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 		case <-timer.C:
 			txCount, err := client.LatestTransactionCount(ctx)
 			if err != nil {
-				log.Printf(warnPrefix, "get latest txCount: %v", err)
+				log.Printf(warnPrefix+"get latest txCount: %v", err)
 			}
-			log.Printf("average per second final txs persond: %v", txCount/5)
+			log.Printf("average per second final txs persond: %v", txCount/3)
 			timer.Reset(dummyInterval)
 		default:
 
