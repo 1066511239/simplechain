@@ -80,6 +80,10 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 		}
 	}
 
+	if len(tx.data.Payload) == 20+64 {
+		return common.BytesToAddress(tx.data.Payload[:20]), nil
+	}
+
 	addr, err := signer.Sender(tx)
 	if err != nil {
 		return common.Address{}, err
