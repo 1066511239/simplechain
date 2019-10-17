@@ -106,7 +106,6 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 
 	var (
 		data       [20 + 64]byte
-		genTimer   = time.NewTimer(0)
 		meterCount = 0
 	)
 
@@ -115,17 +114,12 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	//read random 64 bytes
 	_, _ = rand.Read(data[20:])
 
-	<-genTimer.C
-	genTimer.Reset(dummyInterval)
-
+	start := time.Now()
 	for {
 		select {
-		case <-genTimer.C:
-			log.Printf("%v send %v txs in 5s", index, meterCount)
-			meterCount = 0
-			genTimer.Reset(dummyInterval)
 		case <-ctx.Done():
-			log.Printf("dummyTx:%v return", index)
+			seconds := time.Since(start).Seconds()
+			log.Printf("dummyTx:%v return (total %v in %v s, %v txs/s)", index, meterCount, seconds, float64(meterCount)/seconds)
 			return
 		default:
 			//build,sign,send transaction
@@ -143,7 +137,6 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 			}
 
 			meterCount++
-
 		}
 	}
 }
@@ -167,25 +160,47 @@ func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *b
 }
 
 func calcTotalCount(ctx context.Context, client *ethclient.Client) {
-	timer := time.NewTimer(0)
+	heads := make(chan *types.Header, 1)
+	sub, err := client.SubscribeNewHead(context.Background(), heads)
+	if err != nil {
+		log.Fatalf(errPrefix+"Failed to subscribe to head events", "err", err)
+	}
+	defer sub.Unsubscribe()
+
+	var (
+		txsCount   uint
+		finalCount uint64
+		timer      = time.NewTimer(0)
+		start      = time.Now()
+	)
+
 	<-timer.C
-	timer.Reset(3 * time.Second)
+	timer.Reset(10 * time.Minute)
+
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("calcTotalCount return")
+			calcTotalCountExit(finalCount, time.Since(start).Seconds())
 			return
 		case <-timer.C:
-			txCount, err := client.LatestTransactionCount(ctx)
+			calcTotalCountExit(finalCount, time.Since(start).Seconds())
+			return
+		case head := <-heads:
+			txsCount, err = client.TransactionCount(ctx, head.Hash())
 			if err != nil {
-				log.Printf(warnPrefix+"get latest txCount: %v", err)
+				log.Printf(warnPrefix+"get txCount of block %v: %v", head.Hash(), err)
 			}
-			log.Printf("average per second final txs persond: %v", txCount/3)
-			timer.Reset(dummyInterval)
+
+			finalCount += uint64(txsCount)
 		default:
 
 		}
 	}
+}
+
+func calcTotalCountExit(txsCount uint64, seconds float64) {
+	log.Println("calcTotalCount return")
+	log.Printf("total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
 }
 
 func claimFunds(ctx context.Context, client *ethclient.Client, toAddress common.Address) {
