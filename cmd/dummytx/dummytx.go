@@ -47,21 +47,21 @@ func main() {
 		"94dbb9085d79578046c4b10a0a7baefead738371ac763ee6ed7d727d348a2509",
 	}
 
-	var privkeys []string
+	var priKeys []string
 	if len(os.Args) > 1 && os.Args[1] == "1" {
-		privkeys = sourceKey[:1]
+		priKeys = sourceKey[:1]
 	} else if len(os.Args) > 1 && os.Args[1] == "2" {
-		privkeys = sourceKey[:2]
+		priKeys = sourceKey[:2]
 	} else if len(os.Args) > 1 && os.Args[1] == "8" {
-		privkeys = sourceKey
+		priKeys = sourceKey
 	} else {
-		privkeys = sourceKey[:4]
+		priKeys = sourceKey[:4]
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	for i, privKey := range privkeys {
-		go dummyTx(ctx, client, i, privKey)
+	for i, priKey := range priKeys {
+		go dummyTx(ctx, client, i, priKey)
 	}
 
 	go calcTotalCount(ctx, client)
@@ -80,8 +80,8 @@ func main() {
 	log.Println("dummy transaction exit")
 }
 
-func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey string) {
-	privateKey, err := crypto.HexToECDSA(privKey)
+func dummyTx(ctx context.Context, client *ethclient.Client, index int, priKey string) {
+	privateKey, err := crypto.HexToECDSA(priKey)
 	if err != nil {
 		log.Fatalf(errPrefix+" parse private key: %v", err)
 	}
@@ -98,10 +98,11 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 	value := big.NewInt(0)
 	gasLimit := uint64(21000 + (20+64)*68) // in units
-	gasPrice, err := client.SuggestGasPrice(ctx)
-	if err != nil {
-		log.Fatalf(errPrefix+" get gas price: %v", err)
-	}
+	gasPrice := big.NewInt(0)
+	//gasPrice, err := client.SuggestGasPrice(ctx)
+	//if err != nil {
+	//	log.Fatalf(errPrefix+" get gas price: %v", err)
+	//}
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
 
 	var (
@@ -112,7 +113,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	copy(data[:], fromAddress.Bytes())
 
 	//read random 64 bytes
-	_, _ = rand.Read(data[20:])
+	//_, _ = rand.Read(data[20:])
 
 	start := time.Now()
 	for {
@@ -124,7 +125,7 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 		default:
 			//build,sign,send transaction
 			_, _ = rand.Read(data[20:])
-			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], privateKey, client, fromAddress)
+			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], client, fromAddress)
 
 			switch {
 			case nonce%20000 == 0:
@@ -141,21 +142,11 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, privKey s
 	}
 }
 
-func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, privateKey *ecdsa.PrivateKey, client *ethclient.Client, fromAddress common.Address) {
+func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, client *ethclient.Client, fromAddress common.Address) {
 	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
-	//signedTx, err := types.SignTx(tx, types.NewEIP155Signer(new(big.Int).SetInt64(110)), privateKey)
-	//if err != nil {
-	//	log.Fatalf(errPrefix+"sign tx: %v", err)
-	//}
-
 	err := client.SendTransaction(ctx, tx)
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
-		if strings.Contains(err.Error(), "insufficient funds for gas * price + value") {
-			claimFunds(ctx, client, fromAddress)
-			//waiting transfer tx
-			time.Sleep(dummyInterval)
-		}
 	}
 }
 
@@ -163,17 +154,17 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 	heads := make(chan *types.Header, 1)
 	sub, err := client.SubscribeNewHead(context.Background(), heads)
 	if err != nil {
-		log.Fatalf(errPrefix+"failed to subscribe to head events", "err", err)
+		log.Fatal(errPrefix+"failed to subscribe to head events", "err", err)
 	}
 	defer sub.Unsubscribe()
 
 	var (
-		txsCount   uint
+		txsCount       uint
 		minuteTxsCount uint
-		finalCount uint64
-		timer      = time.NewTimer(0)
-		start      = time.Now()
-		MinuCount =0
+		finalCount     uint64
+		timer          = time.NewTimer(0)
+		start          = time.Now()
+		minuteCount    = 0
 	)
 
 	<-timer.C
@@ -186,22 +177,23 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 			return
 		case <-timer.C:
 			timer.Reset(1 * time.Minute)
-			MinuCount++
-			log.Printf("%d, 1min finalize %v txs, %v txs/s", MinuCount,minuteTxsCount, minuteTxsCount/60)
+			minuteCount++
+			log.Printf("%d, 1min finalize %v txs, %v txs/s", minuteCount, minuteTxsCount, minuteTxsCount/60)
 
-			if MinuCount == 10 {
+			if minuteCount == 10 {
 				calcTotalCountExit(finalCount, time.Since(start).Seconds())
 				//return
-				finalCount=0
+				finalCount = 0
+				minuteCount = 0
 			}
-			minuteTxsCount =0
+			minuteTxsCount = 0
 		case head := <-heads:
 			txsCount, err = client.TransactionCount(ctx, head.Hash())
 			if err != nil {
 				log.Printf(warnPrefix+"get txCount of block %v: %v", head.Hash(), err)
 			}
-			log.Printf("block Number: %s, txCount: %d",head.Number.String(),txsCount)
-			minuteTxsCount +=txsCount
+			log.Printf("block Number: %s, txCount: %d", head.Number.String(), txsCount)
+			minuteTxsCount += txsCount
 			finalCount += uint64(txsCount)
 		default:
 
@@ -211,7 +203,7 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 
 func calcTotalCountExit(txsCount uint64, seconds float64) {
 	//log.Println("calcTotalCount return")
-	log.Printf("10 minutes total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
+	log.Printf("total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
 }
 
 func claimFunds(ctx context.Context, client *ethclient.Client, toAddress common.Address) {
