@@ -163,19 +163,21 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 	heads := make(chan *types.Header, 1)
 	sub, err := client.SubscribeNewHead(context.Background(), heads)
 	if err != nil {
-		log.Fatalf(errPrefix+"Failed to subscribe to head events", "err", err)
+		log.Fatalf(errPrefix+"failed to subscribe to head events", "err", err)
 	}
 	defer sub.Unsubscribe()
 
 	var (
 		txsCount   uint
+		minuteTxsCount uint
 		finalCount uint64
 		timer      = time.NewTimer(0)
 		start      = time.Now()
+		MinuCount =0
 	)
 
 	<-timer.C
-	timer.Reset(10 * time.Minute)
+	timer.Reset(1 * time.Minute)
 
 	for {
 		select {
@@ -183,14 +185,23 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 			calcTotalCountExit(finalCount, time.Since(start).Seconds())
 			return
 		case <-timer.C:
-			calcTotalCountExit(finalCount, time.Since(start).Seconds())
-			return
+			timer.Reset(1 * time.Minute)
+			MinuCount++
+			log.Printf("%d, 1min finalize %v txs, %v txs/s", MinuCount,minuteTxsCount, minuteTxsCount/60)
+
+			if MinuCount == 10 {
+				calcTotalCountExit(finalCount, time.Since(start).Seconds())
+				//return
+				finalCount=0
+			}
+			minuteTxsCount =0
 		case head := <-heads:
 			txsCount, err = client.TransactionCount(ctx, head.Hash())
 			if err != nil {
 				log.Printf(warnPrefix+"get txCount of block %v: %v", head.Hash(), err)
 			}
-
+			log.Printf("block Number: %s, txCount: %d",head.Number.String(),txsCount)
+			minuteTxsCount +=txsCount
 			finalCount += uint64(txsCount)
 		default:
 
@@ -199,8 +210,8 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 }
 
 func calcTotalCountExit(txsCount uint64, seconds float64) {
-	log.Println("calcTotalCount return")
-	log.Printf("total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
+	//log.Println("calcTotalCount return")
+	log.Printf("10 minutes total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
 }
 
 func claimFunds(ctx context.Context, client *ethclient.Client, toAddress common.Address) {
