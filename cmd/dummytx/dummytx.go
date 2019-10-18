@@ -55,7 +55,7 @@ func init() {
 
 func main() {
 	sendTx := flag.Bool("sendtx", true, "enable only send tx")
-	senderCount := flag.Int("c", 16, "the number of sender")
+	senderCount := flag.Int("c", 4, "the number of sender")
 	MonitorTx := flag.Bool("monitor", false, "enable monitor txs in block")
 	startBlock := flag.Int("startBlock", 10, "calculate tps start from this block")
 
