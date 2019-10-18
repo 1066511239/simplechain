@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"flag"
 	"log"
 	"math/big"
 	"math/rand"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -26,17 +26,8 @@ const (
 	errPrefix     = "\x1b[91merror:\x1b[0m"
 )
 
-func init() {
-	log.SetFlags(log.Lshortfile | log.LstdFlags)
-}
-
-func main() {
-	client, err := ethclient.Dial("ws://localhost:8546")
-	if err != nil {
-		log.Fatalf(errPrefix+" connect ws://localhost:8546: %v", err)
-	}
-
-	var sourceKey = []string{
+var (
+	sourceKey = []string{
 		"e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322",
 		"5aedb85503128685e4f92b0cc95e9e1185db99339f9b85125c1e2ddc0f7c4c48",
 		"6543d61166268b929166e7626b9eeb277feea8bc13bff6bd5f2d01fcb5543a3e",
@@ -45,30 +36,67 @@ func main() {
 		"5fc3281bd2894b8418a895897fbc7fe204099ae2f99f930da195d393976d1bbc",
 		"ac817b6310c8ce7a2fd6783a663e4d47f0ab1fb3ae2fba5f85f07bdca5a36e90",
 		"94dbb9085d79578046c4b10a0a7baefead738371ac763ee6ed7d727d348a2509",
+		"bfcca7c164821bc6162657da43e816a78b5993ecaa8174a56a90788a83707749",
+		"31f6f1e0b357c6c4b626e96b84a09289ccb0dd565a4d87831f7b5e49384fbe14",
+		"50c5633909248612d848d4c8d353b57eb0802b8ae1bcea5d89b5cfe0134efa52",
+		"1c502ae118d54d9b9f4c6bb47e9aff53e705c2eb2464c3403be445dc975d5f32",
+		"b1c6d3a853d30624a771d0c29161ad32c7179d141d7d4b5e6534fc8b2514d8f6",
+		"9284053f3a224697240b67a2450b8fe6bcaa07c61ab5f134f2dba41d76b506f4",
+		"024bce5b3cd68652749937e9028e57ecac49ee3342fef15c76887d9bf144e51a",
+		"d30976fcd0846a346c8de3a327170a2c96fb8a00972b03a84eedbfbc18b646d8",
+		"2f06cf29ef2f787ac1a7b18cc89db27387dbb9c2a868914c5c506bee33e506f0",
+		"6e5d936f2578d7805d1aa70f3e6d82492dfc5af838c2bbbe50fa2a343aab43e8",
 	}
+)
 
-	var priKeys []string
-	if len(os.Args) > 1 && os.Args[1] == "1" {
-		priKeys = sourceKey[:1]
-	} else if len(os.Args) > 1 && os.Args[1] == "2" {
-		priKeys = sourceKey[:2]
-	} else if len(os.Args) > 1 && os.Args[1] == "8" {
-		priKeys = sourceKey
-	} else {
-		priKeys = sourceKey[:4]
-	}
+func init() {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
+}
+
+func main() {
+	sendTx := flag.Bool("sendtx", true, "enable only send tx")
+	senderCount := flag.Int("c", 16, "the number of sender")
+	MonitorTx := flag.Bool("monitor", false, "enable monitor txs in block")
+	startBlock := flag.Int("startBlock", 10, "calculate tps start from this block")
+
+	url := flag.String("url", "ws://localhost:8546", "websocket url")
+	flag.Parse()
+	//fmt.Println(*sendTx, *startBlock, *url, *MonitorTx)
 
 	ctx, cancel := context.WithCancel(context.Background())
-
-	for i, priKey := range priKeys {
-		go dummyTx(ctx, client, i, priKey)
+	client, err := ethclient.Dial(*url)
+	if err != nil {
+		log.Fatalf(errPrefix+" connect %s: %v", *url, err)
 	}
 
-	go calcTotalCount(ctx, client)
+	block, err := client.BlockByNumber(ctx, nil)
+	if err != nil {
+		log.Println(errPrefix, err)
+	}
+	log.Println("block number: ", block.Number().String())
 
-	go func() {
-		http.ListenAndServe("127.0.0.1:6789", nil)
-	}()
+	if *sendTx {
+		log.Printf("start send tx %d accounts", *senderCount)
+		for i := 0; i < *senderCount; i++ {
+			privateKey, err := crypto.HexToECDSA(sourceKey[i])
+			if err != nil {
+				log.Fatalf(errPrefix+" parse private key: %v", err)
+			}
+			publicKey := privateKey.Public()
+			publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+			if !ok {
+				log.Fatalf(errPrefix + " cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+			}
+			fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
+			log.Printf("sender:%d %s\n", i, fromAddress.String())
+
+			go dummyTx(ctx, client, i, fromAddress)
+		}
+	}
+	if *MonitorTx {
+		log.Println("start monitor txs in blockChain")
+		go calcTotalCount(ctx, client, *startBlock)
+	}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -80,19 +108,8 @@ func main() {
 	log.Println("dummy transaction exit")
 }
 
-func dummyTx(ctx context.Context, client *ethclient.Client, index int, priKey string) {
-	privateKey, err := crypto.HexToECDSA(priKey)
-	if err != nil {
-		log.Fatalf(errPrefix+" parse private key: %v", err)
-	}
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatalf(errPrefix + " cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	nonce, err := client.PendingNonceAt(ctx, fromAddress)
+func dummyTx(ctx context.Context, client *ethclient.Client, index int, fromAddr common.Address) {
+	nonce, err := client.PendingNonceAt(ctx, fromAddr)
 	if err != nil {
 		log.Fatalf(errPrefix+" get new nonce: %v", err)
 	}
@@ -106,14 +123,15 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, priKey st
 	toAddress := common.HexToAddress("0xffd79941b7085805f48ded97298694c6bb950e2c")
 
 	var (
-		data       [20 + 64]byte
-		meterCount = 0
+		data          [20 + 64]byte
+		meterCount    = 0
+		sendTxCal     = time.NewTimer(0)
+		minuteTxCount = 0
 	)
 
-	copy(data[:], fromAddress.Bytes())
-
-	//read random 64 bytes
-	//_, _ = rand.Read(data[20:])
+	<-sendTxCal.C
+	sendTxCal.Reset(1 * time.Minute)
+	copy(data[:], fromAddr.Bytes())
 
 	start := time.Now()
 	for {
@@ -122,21 +140,30 @@ func dummyTx(ctx context.Context, client *ethclient.Client, index int, priKey st
 			seconds := time.Since(start).Seconds()
 			log.Printf("dummyTx:%v return (total %v in %v s, %v txs/s)", index, meterCount, seconds, float64(meterCount)/seconds)
 			return
+		case <-sendTxCal.C:
+			sendTxCal.Reset(1 * time.Minute)
+			log.Printf("%d th account, 1 minute send tx,total %d, send tps: %d txs/s  ", index, minuteTxCount, minuteTxCount/60)
+			minuteTxCount = 0
+			nonce, err = client.PendingNonceAt(ctx, fromAddr)
+			if err != nil {
+				log.Fatalf(errPrefix+" get new nonce: %v", err)
+			}
+			return
 		default:
 			//build,sign,send transaction
-			_, _ = rand.Read(data[20:])
-			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], client, fromAddress)
+			_, _ = rand.Read(data[20:]) //read random 64 bytes
+			dummy(ctx, nonce, toAddress, value, gasLimit, gasPrice, data[:], client, fromAddr)
 
 			switch {
 			case nonce%20000 == 0:
-				nonce, err = client.PendingNonceAt(ctx, fromAddress)
+				nonce, err = client.PendingNonceAt(ctx, fromAddr)
 				if err != nil {
 					log.Fatalf(errPrefix+" get new nonce: %v", err)
 				}
 			default:
 				nonce++
 			}
-
+			minuteTxCount++
 			meterCount++
 		}
 	}
@@ -148,9 +175,10 @@ func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *b
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
 	}
+
 }
 
-func calcTotalCount(ctx context.Context, client *ethclient.Client) {
+func calcTotalCount(ctx context.Context, client *ethclient.Client, startBlock int) {
 	heads := make(chan *types.Header, 1)
 	sub, err := client.SubscribeNewHead(context.Background(), heads)
 	if err != nil {
