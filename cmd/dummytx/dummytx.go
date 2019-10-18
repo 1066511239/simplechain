@@ -37,7 +37,6 @@ func main() {
 	}
 
 	var sourceKey = []string{
-		"e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322",
 		"5aedb85503128685e4f92b0cc95e9e1185db99339f9b85125c1e2ddc0f7c4c48",
 		"6543d61166268b929166e7626b9eeb277feea8bc13bff6bd5f2d01fcb5543a3e",
 		"3969a3c690cc238d337561d973c4d107ef7db28a63d23d10ca579742fe14450d",
@@ -168,14 +167,16 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 	defer sub.Unsubscribe()
 
 	var (
-		txsCount   uint
-		finalCount uint64
-		timer      = time.NewTimer(0)
-		start      = time.Now()
+		txsCount       uint
+		minuteTxsCount uint
+		finalCount     uint64
+		timer          = time.NewTimer(0)
+		start          = time.Now()
+		minuteCount    = 0
 	)
 
 	<-timer.C
-	timer.Reset(10 * time.Minute)
+	timer.Reset(1 * time.Minute)
 
 	for {
 		select {
@@ -183,14 +184,27 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 			calcTotalCountExit(finalCount, time.Since(start).Seconds())
 			return
 		case <-timer.C:
-			calcTotalCountExit(finalCount, time.Since(start).Seconds())
-			return
+			minuteCount++
+			log.Printf("%d, 1min finalize %v txs, %v txs/s", minuteCount, minuteTxsCount, minuteTxsCount/60)
+
+			if minuteCount == 10 {
+				calcTotalCountExit(finalCount, time.Since(start).Seconds())
+				//reset
+				finalCount = 0
+				minuteCount = 0
+			}
+
+			//reset
+			minuteTxsCount = 0
+			timer.Reset(1 * time.Minute)
 		case head := <-heads:
 			txsCount, err = client.TransactionCount(ctx, head.Hash())
 			if err != nil {
 				log.Printf(warnPrefix+"get txCount of block %v: %v", head.Hash(), err)
 			}
 
+			log.Printf("block Number: %s, txCount: %d", head.Number.String(), txsCount)
+			minuteTxsCount += txsCount
 			finalCount += uint64(txsCount)
 		default:
 
@@ -199,7 +213,6 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 }
 
 func calcTotalCountExit(txsCount uint64, seconds float64) {
-	log.Println("calcTotalCount return")
 	log.Printf("total finalize %v txs in %v seconds, %v txs/s", txsCount, seconds, float64(txsCount)/seconds)
 }
 
