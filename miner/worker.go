@@ -347,9 +347,13 @@ func (w *worker) newWorkLoop(recommit time.Duration) {
 			commit(false, commitInterruptNewHead)
 
 		case head := <-w.chainHeadCh:
-			clearPending(head.Block.NumberU64())
-			timestamp = time.Now().Unix()
-			commit(false, commitInterruptNewHead)
+			author, err := w.engine.Author(head.Block.Header())
+			if err == nil && author != w.coinbase {
+				clearPending(head.Block.NumberU64())
+				timestamp = time.Now().Unix()
+				log.Warn("chainHeadCh commitInterruptNewHead", "head c", head.Block.Coinbase().String(), "w.c", w.coinbase.String())
+				commit(false, commitInterruptNewHead)
+			}
 
 		case <-timer.C:
 			// If mining is running resubmit a new work cycle periodically to pull in
