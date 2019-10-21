@@ -1,9 +1,10 @@
 package db
 
 import (
-	"git.dev.tencent.com/baoquan2017/ccc-resonance/log"
-	"github.com/simplechain-org/simplechain/common"
+	"fmt"
 	"sync"
+
+	"github.com/simplechain-org/simplechain/common"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -24,14 +25,10 @@ type LDBDatabase struct {
 
 	quitLock sync.Mutex      // Mutex protecting the quit channel access
 	quitChan chan chan error // Quit channel to stop the metrics collection before closing the database
-
-	log log.Logger // Contextual logger tracking the database path
 }
 
 // NewLDBDatabase returns a LevelDB wrapped object.
 func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
-	logger := log.New("database")
-	logger.SetHandler(log.DiscardHandler())
 
 	// Ensure we have some minimal caching and file guarantees
 	if cache < 16 {
@@ -40,7 +37,6 @@ func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 	if handles < 16 {
 		handles = 16
 	}
-	logger.Info("Allocated cache and file handles cache %d, handles %d", cache, handles)
 
 	// Open the db and recover any potential corruptions
 	ldb, err := leveldb.OpenFile(file, &opt.Options{
@@ -57,9 +53,8 @@ func NewLDBDatabase(file string, cache int, handles int) (*LDBDatabase, error) {
 		return nil, err
 	}
 	return &LDBDatabase{
-		fn:  file,
-		db:  ldb,
-		log: logger,
+		fn: file,
+		db: ldb,
 	}, nil
 }
 
@@ -109,15 +104,15 @@ func (ldb *LDBDatabase) Close() {
 		errc := make(chan error)
 		ldb.quitChan <- errc
 		if err := <-errc; err != nil {
-			ldb.log.Error("Metrics collection failed", "err", err)
+			fmt.Println("Metrics collection failed", err)
 		}
 		ldb.quitChan = nil
 	}
 	err := ldb.db.Close()
 	if err == nil {
-		ldb.log.Info("Database closed")
+		fmt.Println("Database closed")
 	} else {
-		ldb.log.Error("Failed to close database", "err", err)
+		fmt.Println("Failed to close database", err)
 	}
 }
 
@@ -136,20 +131,3 @@ func (ldb *LDBDatabase) GetHashId(hash common.Hash) (common.Hash, error) {
 	}
 	return common.BytesToHash(data), nil
 }
-
-//func (ldb *LDBDatabase) GetAllRawTrades() (trades protocol.BtcTrades, err error) {
-//	itr := ldb.NewIterator()
-//	itr.First()
-//
-//	for len(itr.Value()) != 0 {
-//		var trade protocol.BtcTrade
-//		if err := rlp.DecodeBytes(itr.Value(), &trade); err != nil {
-//			return nil, err
-//		}
-//		trades = append(trades, trade)
-//		itr.Next()
-//	}
-//
-//	sort.Sort(trades)
-//	return trades, nil
-//}
