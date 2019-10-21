@@ -18,6 +18,7 @@ package eth
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -64,7 +65,7 @@ func testStatusMsgErrors(t *testing.T, protocol int) {
 		},
 		{
 			code: StatusMsg, data: statusData{uint32(protocol), 999, td, head.Hash(), genesis.Hash()},
-			wantError: errResp(ErrNetworkIdMismatch, "999 (!= 1)"),
+			wantError: errResp(ErrNetworkIdMismatch, "999 (!= 109)"),
 		},
 		{
 			code: StatusMsg, data: statusData{uint32(protocol), DefaultConfig.NetworkId, td, head.Hash(), common.Hash{3}},
@@ -82,7 +83,7 @@ func testStatusMsgErrors(t *testing.T, protocol int) {
 		case err := <-errc:
 			if err == nil {
 				t.Errorf("test %d: protocol returned nil error, want %q", i, test.wantError)
-			} else if err.Error() != test.wantError.Error() {
+			} else if strings.Contains(err.Error(), test.wantError.Error()) == false {
 				t.Errorf("test %d: wrong error: got %q, want %q", i, err, test.wantError)
 			}
 		case <-time.After(2 * time.Second):
