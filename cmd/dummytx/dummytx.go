@@ -105,7 +105,7 @@ func main() {
 	url := flag.String("url", "ws://localhost:8546", "websocket url")
 
 	PrintDB := flag.Bool("printDB", false, "get hashID from DB")
-	getTxIDByHashData := flag.String("hashID", "", "get tx ID by hash data")
+	getTxByHashData := flag.String("hashID", "", "get tx ID by hash data")
 	flag.Parse()
 
 	hashDb, err := db.NewLDBDatabase("./IdHash", 0, 0)
@@ -123,20 +123,23 @@ func main() {
 		itr.Release()
 		return
 	}
-
-	if len(*getTxIDByHashData) == 66 {
-		txID, err := hashDb.GetHashId(common.HexToHash(*getTxIDByHashData))
-		if err != nil {
-			log.Printf("getHashId failed,hash:%s, err: %s", *getTxIDByHashData, err)
-		}
-		log.Println("txID: ", txID.String())
-		return
-	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	client, err := ethclient.Dial(*url)
 	if err != nil {
 		log.Fatalf(errPrefix+" connect %s: %v", *url, err)
+	}
+
+	if len(*getTxByHashData) == 66 {
+		txID, err := hashDb.GetHashId(common.HexToHash(*getTxByHashData))
+		if err != nil {
+			log.Printf("getHashId failed,hash:%s, err: %s", *getTxByHashData, err)
+		}
+		log.Println("txID: ", txID.String())
+		tx, _, err := client.TransactionByHash(ctx, txID)
+		log.Println("hash data: ", common.BytesToHash(tx.Data()[20:]).String())
+		txJson, err := tx.MarshalJSON()
+		log.Println("tx:  ", string(txJson))
+		return
 	}
 
 	block, err := client.BlockByNumber(ctx, nil)
@@ -245,7 +248,7 @@ func dummy(ctx context.Context, nonce uint64, toAddress common.Address, value *b
 	if err != nil {
 		log.Printf(warnPrefix+" send tx: %v", err)
 	}
-	fmt.Println(common.BytesToHash(tx.Data()[20:]).String(), tx.Hash().String())
+
 	err = hashDb.InsertHash(common.BytesToHash(tx.Data()[20:]), tx.Hash())
 	if err != nil {
 		fmt.Printf("InsertHash failed: hash: %s,txId:%s\n", common.BytesToHash(tx.Data()[20:]).String(), tx.Hash().String())
