@@ -162,7 +162,7 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 	heads := make(chan *types.Header, 1)
 	sub, err := client.SubscribeNewHead(context.Background(), heads)
 	if err != nil {
-		log.Fatalf(errPrefix+"Failed to subscribe to head events", "err", err)
+		log.Fatalf(errPrefix+"Failed to subscribe to head events %v", err)
 	}
 	defer sub.Unsubscribe()
 
