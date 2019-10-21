@@ -9,7 +9,7 @@ ethash for POW mining.
 
 ## Building the source (just for developer)
 
-Building sipe which is the simplechain client requires both a Go (version 1.9 or later) and a C compiler.
+Building sipe which is the simplechain client requires both a Go (1.9 <= version <=1.12.9 ) and a C compiler.
 You can install them using your favourite package manager.
 Once the dependencies are installed, run
 ```bash
@@ -27,6 +27,14 @@ for developers, after your code completed , please run lint tools and fix lint e
 ```bash
 $ make lint
 ```
+
+for test, download testdata 
+
+```bash
+$ git submodule update --init
+$ make test
+```
+
 
 #### Development flow:
 checkout one branch -> complete your code -> make lint and make test -> git commit and git push -> make a pull request -> code rewiew and approve it -> merge dev -> release master 
