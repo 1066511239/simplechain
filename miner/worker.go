@@ -459,13 +459,13 @@ func (w *worker) mainLoop() {
 				coinbase := w.coinbase
 				w.mu.RUnlock()
 
-				txs := make(map[common.Address]types.Transactions)
-				for _, tx := range ev.Txs {
-					acc, _ := types.Sender(w.current.signer, tx)
-					txs[acc] = append(txs[acc], tx)
-				}
-				txset := types.NewTransactionsByPriceAndNonce(w.current.signer, txs)
-				w.commitTransactions(txset, coinbase, nil)
+				//txs := make(map[common.Address]types.Transactions)
+				//for _, tx := range ev.Txs {
+				//	acc, _ := types.Sender(w.current.signer, tx)
+				//	txs[acc] = append(txs[acc], tx)
+				//}
+				//txset := types.NewTransactionsByPriceAndNonce(w.current.signer, txs)
+				w.commitTransactions(ev.Txs, coinbase, nil)
 				w.updateSnapshot()
 			} else {
 				// If we're mining, but nothing is being processed, wake on new transactions
@@ -581,8 +581,8 @@ func (w *worker) resultLoop() {
 				log.Error("Failed writing block to chain", "err", err)
 				continue
 			}
-			log.Info("Successfully sealed new block", "number", block.Number(), "sealhash", sealhash, "hash", hash,
-				"elapsed", common.PrettyDuration(time.Since(task.createdAt)))
+			log.Warn("Successfully sealed new block", "number", block.Number(), "sealhash", sealhash, "hash", hash,
+				"elapsed", common.PrettyDuration(time.Since(task.createdAt)), "txs", block.Transactions().Len())
 
 			// Broadcast the block and announce chain insertion event
 			w.mux.Post(core.NewMinedBlockEvent{Block: block})
@@ -691,18 +691,44 @@ func (w *worker) updateSnapshot() {
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error) {
 	snap := w.current.state.Snapshot()
 
-	receipt, _, err := core.ApplyTransaction(w.config, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
+	//receipt, _, err := core.ApplyTransaction(w.config, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
+	receipt, err := w.alwaysReceipt(w.config, &coinbase, w.current.state, w.current.header, tx)
 	if err != nil {
 		w.current.state.RevertToSnapshot(snap)
 		return nil, err
 	}
+
 	w.current.txs = append(w.current.txs, tx)
 	w.current.receipts = append(w.current.receipts, receipt)
 
 	return receipt.Logs, nil
 }
 
-func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coinbase common.Address, interrupt *int32) bool {
+func (w *worker) alwaysReceipt(config *params.ChainConfig, author *common.Address, statedb *state.StateDB, header *types.Header, tx *types.Transaction) (*types.Receipt, error) {
+	msg, err := tx.AsMessageFromPool(types.MakeSigner(config, header.Number))
+	if err != nil {
+		return nil, err
+	}
+	sender := msg.From()
+	statedb.SetNonce(sender, statedb.GetNonce(sender)+1)
+
+	var root []byte
+	if config.IsByzantium(header.Number) {
+		statedb.Finalise(true)
+	} else {
+		root = statedb.IntermediateRoot(config.IsEIP158(header.Number)).Bytes()
+	}
+
+	//root := common.Hash{}.Bytes()
+
+	receipt := types.NewReceipt(root, false, 0)
+	receipt.TxHash = tx.Hash()
+	receipt.Logs = statedb.GetLogs(tx.Hash())
+	receipt.Bloom = types.CreateBloom(types.Receipts{receipt})
+	return receipt, nil
+}
+
+func (w *worker) commitTransactions(txs types.Transactions, coinbase common.Address, interrupt *int32) bool {
 	// Short circuit if current is nil
 	if w.current == nil {
 		return true
@@ -715,6 +741,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 	var coalescedLogs []*types.Log
 	log.Error("poatest-----1----------------------")
 	var total int
+	var index int
 	for {
 		// In the following three cases, we will interrupt the execution of the transaction.
 		// (1) new head block event arrival, the interrupt signal is 1
@@ -744,21 +771,22 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			break
 		}
 		// Retrieve the next transaction and abort if all done
-		tx := txs.Peek()
-		if tx == nil {
+		if index >= txs.Len() {
 			break
 		}
+		tx := txs[index]
+
 		// Error may be ignored here. The error has already been checked
 		// during transaction acceptance is the transaction pool.
 		//
 		// We use the eip155 signer regardless of the current hf.
-		from, _ := types.Sender(w.current.signer, tx)
+		//from, _ := types.Sender(w.current.signer, tx)
 		// Check whether the tx is replay protected. If we're not in the EIP155 hf
 		// phase, start ignoring the sender until we do.
 		if tx.Protected() && !w.config.IsEIP155(w.current.header.Number) {
 			log.Trace("Ignoring reply protected transaction", "hash", tx.Hash(), "eip155", w.config.EIP155Block)
 
-			txs.Pop()
+			index++
 			continue
 		}
 		// Start executing the transaction
@@ -768,30 +796,30 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		switch err {
 		case core.ErrGasLimitReached:
 			// Pop the current out-of-gas transaction without shifting in the next from the account
-			log.Trace("Gas limit exceeded for current block", "sender", from)
-			txs.Pop()
+			log.Trace("Gas limit exceeded for current block", "hash", tx.Hash().String())
+			index++
 
 		case core.ErrNonceTooLow:
 			// New head notification data race between the transaction pool and miner, shift
-			log.Trace("Skipping transaction with low nonce", "sender", from, "nonce", tx.Nonce())
-			txs.Shift()
+			log.Trace("Skipping transaction with low nonce", "hash", tx.Hash().String(), "nonce", tx.Nonce())
+			index++
 
 		case core.ErrNonceTooHigh:
 			// Reorg notification data race between the transaction pool and miner, skip account =
-			log.Trace("Skipping account with hight nonce", "sender", from, "nonce", tx.Nonce())
-			txs.Pop()
+			log.Trace("Skipping account with hight nonce", "hash", tx.Hash().String(), "nonce", tx.Nonce())
+			index++
 
 		case nil:
 			// Everything ok, collect the logs and shift in the next transaction from the same account
 			coalescedLogs = append(coalescedLogs, logs...)
 			w.current.tcount++
-			txs.Shift()
+			index++
 			total++
 		default:
 			// Strange error, discard the transaction and get the next in line (note, the
 			// nonce-too-high clause will prevent us from executing in vain).
 			log.Debug("Transaction failed, account skipped", "hash", tx.Hash(), "err", err)
-			txs.Shift()
+			index++
 		}
 	}
 
@@ -913,43 +941,41 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	}
 
 	// Fill the block with all available pending transactions.
-	pending, err := w.eth.TxPool().Pending()
-	if err != nil {
-		log.Error("Failed to fetch pending transactions", "err", err)
-		return
-	}
+	pending := w.eth.TxPool().Pending()
+	//if err != nil {
+	//	log.Error("Failed to fetch pending transactions", "err", err)
+	//	return
+	//}
 	// Short circuit if there is no available pending transactions
+	// Split the pending transactions into locals and remotes
+	//localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
+
+	log.Error("\npoatest-----------------------")
+	//var total int
+	//for _, account := range w.eth.TxPool().Locals() {
+	//	if txs := remoteTxs[account]; len(txs) > 0 {
+	//		delete(remoteTxs, account)
+	//		localTxs[account] = txs
+	//		total += len(txs)
+	//		log.Error("poatest", "account", account, "txs", len(txs))
+	//	}
+	//}
+
+	log.Error("poatest--------------", "timestamp", timestamp, "pending", pending, "total", len(pending))
 	if len(pending) == 0 {
 		w.updateSnapshot()
 		return
 	}
-	// Split the pending transactions into locals and remotes
-	localTxs, remoteTxs := make(map[common.Address]types.Transactions), pending
 
-	log.Error("\npoatest-----------------------")
-	var total int
-	for _, account := range w.eth.TxPool().Locals() {
-		if txs := remoteTxs[account]; len(txs) > 0 {
-			delete(remoteTxs, account)
-			localTxs[account] = txs
-			total += len(txs)
-			log.Error("poatest", "account", account, "txs", len(txs))
-		}
+	if w.commitTransactions(pending, w.coinbase, interrupt) {
+		return
 	}
-
-	log.Error("poatest--------------", "timestamp", timestamp, "remoteTxs", remoteTxs, "total", total)
-	if len(localTxs) > 0 {
-		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, localTxs)
-		if w.commitTransactions(txs, w.coinbase, interrupt) {
-			return
-		}
-	}
-	if len(remoteTxs) > 0 {
-		txs := types.NewTransactionsByPriceAndNonce(w.current.signer, remoteTxs)
-		if w.commitTransactions(txs, w.coinbase, interrupt) {
-			return
-		}
-	}
+	//if len(remoteTxs) > 0 {
+	//	txs := types.NewTransactionsByPriceAndNonce(w.current.signer, remoteTxs)
+	//	if w.commitTransactions(txs, w.coinbase, interrupt) {
+	//		return
+	//	}
+	//}
 	w.commit(uncles, w.fullTaskHook, true, tstart)
 }
 

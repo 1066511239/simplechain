@@ -36,6 +36,8 @@ func main() {
 		log.Fatalf(errPrefix+" connect ws://localhost:8546: %v", err)
 	}
 
+	client.BlockByNumber(context.Background(), new(big.Int).SetUint64(13))
+
 	var sourceKey = []string{
 		"e97f894d3862f82acc6981eaf91f680861cb3bf55b7401e85f4a2dfda9f7d322",
 		"5aedb85503128685e4f92b0cc95e9e1185db99339f9b85125c1e2ddc0f7c4c48",
