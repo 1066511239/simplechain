@@ -508,6 +508,79 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 	return (*hexutil.Big)(state.GetBalance(address)), state.Error()
 }
 
+func (s *PublicBlockChainAPI) IsManager(ctx context.Context, address common.Address) (bool, error) {
+	data, err := isManagerData(address)
+	if err != nil {
+		return false, err
+	}
+
+	result, gas, failed, err := s.doCall(ctx, *buildCallArgs(data), rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
+	log.Info("IsManager", "result", result, "gas", gas, "failed", failed, "error", err)
+	if err != nil {
+		return false, err
+	}
+
+	return result[len(result)-1] > 0, nil
+}
+func (s *PublicTransactionPoolAPI) AddManager(ctx context.Context, from, address common.Address) (common.Hash, error) {
+	input, err := addManagerData(address)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return s.SendTransaction(ctx, *buildTxArgs(from, input))
+}
+func (s *PublicTransactionPoolAPI) DeleteManager(ctx context.Context, from, address common.Address) (common.Hash, error) {
+	input, err := deleteManagerData(address)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return s.SendTransaction(ctx, *buildTxArgs(from, input))
+}
+
+func (s *PublicBlockChainAPI) GetPermission(ctx context.Context, address common.Address) (uint8, error) {
+	data, err := getPermissionData(address)
+	if err != nil {
+		return 0, err
+	}
+	result, gas, failed, err := s.doCall(ctx, *buildCallArgs(data), rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
+	log.Info("getPermission", "result", result, "gas", gas, "fail ed", failed, "error", err)
+	if err != nil {
+		return 0, err
+	}
+
+	return result[len(result)-1], nil
+}
+func (s *PublicTransactionPoolAPI) SetPermission(ctx context.Context, from, address common.Address, level uint8) (common.Hash, error) {
+	input, err := setPermissionData(address, level)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return s.SendTransaction(ctx, *buildTxArgs(from, input))
+}
+
+func (s *PublicBlockChainAPI) GetCryptoData(ctx context.Context, from common.Address) (hexutil.Bytes, error) {
+	data, err := getCryptoDataData()
+	if err != nil {
+		return nil, err
+	}
+	args := buildCallArgs(data)
+	args.From = from
+	result, gas, failed, err := s.doCall(ctx, *args, rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
+	log.Info("getCryptoData", "result", result, "gas", gas, "fail ed", failed, "error", err)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+func (s *PublicTransactionPoolAPI) SaveData(ctx context.Context, from common.Address, data string) (common.Hash, error) {
+	input, err := saveDataData(data)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	return s.SendTransaction(ctx, *buildTxArgs(from, input))
+}
+
 // Result structs for GetProof
 type AccountResult struct {
 	Address      common.Address  `json:"address"`
