@@ -190,7 +190,6 @@ func calcTotalCount(ctx context.Context, client *ethclient.Client) {
 			if minuteCount == 10 {
 				calcTotalCountExit(finalCount, time.Since(start).Seconds())
 				//reset
-				finalCount = 0
 				minuteCount = 0
 			}
 
