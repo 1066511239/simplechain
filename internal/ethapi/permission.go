@@ -7,7 +7,7 @@ import (
 	"math/big"
 )
 
-var managerContractAddress = common.HexToAddress("0x9a2fE6905Ed4dD3A4DB19c1cD1Ec86e70d7f7b15")
+var managerContractAddress = common.HexToAddress("0xC0018822caC60FE4f223b758C83636546cF0D535")
 
 func isManagerData(address common.Address) (hexutil.Bytes, error) {
 	fnId, err := getFnId("isManager(address)")
@@ -106,7 +106,7 @@ func getCryptoDataData() (hexutil.Bytes, error) {
 }
 
 func buildTxArgs(from common.Address, input hexutil.Bytes) *SendTxArgs {
-	gas := hexutil.Uint64(1000000)
+	gas := hexutil.Uint64(200000)
 
 	return &SendTxArgs{
 		From:     from,

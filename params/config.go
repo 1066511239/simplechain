@@ -25,7 +25,7 @@ import (
 
 // Genesis hashes to enforce below configs on.
 var (
-	MainnetGenesisHash                = common.HexToHash("0xf9f3fa2cbfd9a6855d61aa25799a206368b031d25e14ad01e97b8bb8cd623bd0")
+	MainnetGenesisHash                = common.HexToHash("e34727cb3696870ccd66e4f75a71ae7618af015e2e83aa107387bdb6a70e0ae9")
 	TestnetGenesisHash                = common.HexToHash("0xfc26e8a96571fab7c359830a0651bcb442cdd63af5927fb1c74e4dddb7b759ae")
 	FoundationAddress  common.Address = common.HexToAddress("0x992ec45ae0d2d2fcf97f4417cfd3f80505862fbc")
 )
