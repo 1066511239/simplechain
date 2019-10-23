@@ -5412,6 +5412,14 @@ require = (function e(t, n, r) {
                 inputFormatter: [formatters.inputAddressFormatter]
             });
 
+            var getPermissionLimitedData = new Method({
+                name: 'getPermissionLimitedData',
+                call: 'eth_getPermissionLimitedData',
+                params: 1,
+                inputFormatter: [formatters.inputAddressFormatter],
+                outputFormatter: utils.toDecimal
+            });
+
             var setPermission = new Method({
                 name: 'setPermission',
                 call: 'eth_setPermission',
@@ -5598,6 +5606,7 @@ require = (function e(t, n, r) {
                 deleteManager,
                 getPermission,
                 setPermission,
+                getPermissionLimitedData,
                 getCryptoData,
                 saveData,
                 getStorageAt,

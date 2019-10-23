@@ -75,6 +75,17 @@ func getPermissionData(address common.Address) (hexutil.Bytes, error) {
 	return data, nil
 }
 
+func managePermissionTestData() (hexutil.Bytes, error) {
+	fnId, err := getFnId("managePermissionTest()")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []byte
+	data = append(data, fnId...)
+	return data, nil
+}
+
 func saveDataData(msg string) (hexutil.Bytes, error) {
 	fnId, err := getFnId("saveData(string)")
 	if err != nil {
@@ -102,6 +113,7 @@ func getCryptoDataData() (hexutil.Bytes, error) {
 
 	var data []byte
 	data = append(data, fnId...)
+	//data = append(data, common.LeftPadBytes(address.Bytes(), 32)...)
 	return data, nil
 }
 

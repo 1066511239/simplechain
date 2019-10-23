@@ -19,6 +19,7 @@ package ethapi
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/big"
@@ -543,7 +544,7 @@ func (s *PublicBlockChainAPI) GetPermission(ctx context.Context, address common.
 		return 0, err
 	}
 	result, gas, failed, err := s.doCall(ctx, *buildCallArgs(data), rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
-	log.Info("getPermission", "result", result, "gas", gas, "fail ed", failed, "error", err)
+	log.Info("getPermission", "result", result, "gas", gas, "failed", failed, "error", err)
 	if err != nil {
 		return 0, err
 	}
@@ -558,6 +559,25 @@ func (s *PublicTransactionPoolAPI) SetPermission(ctx context.Context, from, addr
 	return s.SendTransaction(ctx, *buildTxArgs(from, input))
 }
 
+func (s *PublicBlockChainAPI) GetPermissionLimitedData(ctx context.Context, from common.Address) (hexutil.Uint64, error) {
+	data, err := managePermissionTestData()
+	if err != nil {
+		return 0, err
+	}
+	args := buildCallArgs(data)
+	args.From = from
+	result, gas, failed, err := s.doCall(ctx, *args, rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
+	log.Info("getPermissionLimitedData", "result", result, "gas", gas, "failed", failed, "error", err)
+	if err != nil {
+		return 0, err
+	}
+	if failed || len(result) < 8 {
+		return 0, nil
+	}
+
+	return hexutil.Uint64(binary.BigEndian.Uint64(result[len(result)-8:])), nil
+}
+
 func (s *PublicBlockChainAPI) GetCryptoData(ctx context.Context, from common.Address) (hexutil.Bytes, error) {
 	data, err := getCryptoDataData()
 	if err != nil {
@@ -566,7 +586,7 @@ func (s *PublicBlockChainAPI) GetCryptoData(ctx context.Context, from common.Add
 	args := buildCallArgs(data)
 	args.From = from
 	result, gas, failed, err := s.doCall(ctx, *args, rpc.PendingBlockNumber, 5*time.Second, s.b.RPCGasCap())
-	log.Info("getCryptoData", "result", result, "gas", gas, "fail ed", failed, "error", err)
+	log.Info("getCryptoData", "result", result, "gas", gas, "failed", failed, "error", err)
 	if err != nil {
 		return nil, err
 	}
