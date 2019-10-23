@@ -76,7 +76,7 @@ func getPermissionData(address common.Address) (hexutil.Bytes, error) {
 }
 
 func saveDataData(msg string) (hexutil.Bytes, error) {
-	fnId, err := getFnId("saveData(string)")
+	fnId, err := getFnId("saveCryptoData(string)")
 	if err != nil {
 		return nil, err
 	}

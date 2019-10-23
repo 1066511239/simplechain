@@ -5532,6 +5532,21 @@ require = (function e(t, n, r) {
                 inputFormatter: [formatters.inputTransactionFormatter]
             });
 
+
+
+            var saveDataWithKey = new Method({
+                name: 'saveDataWithKey',
+                call: 'eth_saveDataWithKey',
+                params: 3,
+                inputFormatter: [null,null,formatters.inputTransactionFormatter]
+            });
+            var getDataWithKey = new Method({
+                name: 'getDataWithKey',
+                call: 'eth_getDataWithKey',
+                params: 2,
+                inputFormatter: [formatters.inputAddressFormatter,null]
+            });
+
             var signTransaction = new Method({
                 name: 'signTransaction',
                 call: 'eth_signTransaction',
@@ -5616,6 +5631,8 @@ require = (function e(t, n, r) {
                 sendRawTransaction,
                 signTransaction,
                 sendTransaction,
+                saveDataWithKey,
+                getDataWithKey,
                 sign,
                 compileSolidity,
                 compileLLL,
